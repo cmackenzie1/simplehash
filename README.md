@@ -1,5 +1,10 @@
 # SimpleHash
 
+[![CI](https://github.com/cmackenzie1/simplehash/actions/workflows/ci.yml/badge.svg)](https://github.com/cmackenzie1/simplehash/actions/workflows/ci.yml)
+[![Crates.io Version](https://img.shields.io/crates/v/simplehash)](https://crates.io/crates/simplehash)
+[![docs.rs](https://img.shields.io/docsrs/simplehash)](https://docs.rs/simplehash/latest/simplehash/)
+
+
 A simple Rust implementation of common non-cryptographic hash functions.
 
 ## Currently Implemented
