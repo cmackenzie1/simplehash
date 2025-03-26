@@ -1,7 +1,15 @@
+/// SimpleHash CLI
+///
+/// This is a command-line interface for the SimpleHash library, allowing quick calculation
+/// of various non-cryptographic hash functions from the terminal.
 use simplehash::{fnv1_32, fnv1_64, fnv1a_32, fnv1a_64, murmurhash3_32, murmurhash3_128};
 use std::env;
 use std::time::Instant;
 
+/// Main entry point for the CLI application.
+///
+/// Calculates and displays multiple hash values for the provided input string.
+/// If no input string is provided, displays usage information.
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
