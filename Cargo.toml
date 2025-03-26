@@ -10,6 +10,13 @@ keywords = ["murmurhash", "fnv", "fnv1a", "murmurhash3", "hash"]
 categories = ["algorithms"]
 readme = "README.md"
 
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "simplehash"
+path = "src/main.rs"
+
 [dependencies]
 
 [dev-dependencies]

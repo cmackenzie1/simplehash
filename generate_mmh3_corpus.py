@@ -77,7 +77,7 @@ def main():
     results = calculate_mmh3_hashes(test_strings)
     
     # Write results to file
-    with open("data/test_corpus.json", "w") as f:
+    with open("data/mmh3_test_corpus.json", "w") as f:
         json.dump(results, f, indent=2)
     
     print(f"Generated test corpus with {len(results)} entries.")

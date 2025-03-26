@@ -1,88 +1,72 @@
 # SimpleHash
 
-A simple, fast Rust library implementing common non-cryptographic hash functions.
+A simple Rust implementation of common non-cryptographic hash functions.
 
-## Features
+## Currently Implemented
 
-* FNV-1 and FNV-1a (32-bit and 64-bit variants)
-* MurmurHash3 (32-bit and 128-bit variants)
-* Pure Rust implementation with no external dependencies
-* Fast and efficient processing
-
-## Installation
-
-Add this to your `Cargo.toml`:
-
-```toml
-[dependencies]
-simplehash = "0.1.0"
-```
+- FNV-1 (32-bit and 64-bit)
+- FNV-1a (32-bit and 64-bit)
+- MurmurHash3 (32-bit and 128-bit)
 
 ## Usage
-
-### Library Usage
 
 ```rust
 use simplehash::{fnv1_32, fnv1a_32, fnv1_64, fnv1a_64, murmurhash3_32, murmurhash3_128};
 
-// Calculate FNV hashes
-let input = "hello world".as_bytes();
-let fnv1_32_result = fnv1_32(input);
-let fnv1a_32_result = fnv1a_32(input);
-let fnv1_64_result = fnv1_64(input);
-let fnv1a_64_result = fnv1a_64(input);
-
-// Calculate MurmurHash3 with a seed value
-let seed = 0;
-let murmur3_32_result = murmurhash3_32(input, seed);
-let murmur3_128_result = murmurhash3_128(input, seed);
+fn main() {
+    let input = "hello world";
+    let bytes = input.as_bytes();
+    
+    let fnv1_32_hash = fnv1_32(bytes);
+    let fnv1a_32_hash = fnv1a_32(bytes);
+    let fnv1_64_hash = fnv1_64(bytes);
+    let fnv1a_64_hash = fnv1a_64(bytes);
+    let murmur3_32_hash = murmurhash3_32(bytes, 0);
+    let murmur3_128_hash = murmurhash3_128(bytes, 0);
+    
+    println!("FNV1-32: 0x{:x}", fnv1_32_hash);
+    println!("FNV1a-32: 0x{:x}", fnv1a_32_hash);
+    println!("FNV1-64: 0x{:x}", fnv1_64_hash);
+    println!("FNV1a-64: 0x{:x}", fnv1a_64_hash);
+    println!("MurmurHash3-32: 0x{:x}", murmur3_32_hash);
+    println!("MurmurHash3-128: 0x{:x}", murmur3_128_hash);
+}
 ```
 
-### Command Line Usage
-
-This package also includes a command-line utility:
+## Command Line Usage
 
 ```bash
-$ simplehash "hello world"
-Input string: "hello world"
-Input bytes:  [104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100]
+# Build the project
+cargo build --release
 
-FNV1-32:       0x8a718a8d (2322709133)
-FNV1a-32:      0x22f4f271 (587238001)
-FNV1-64:       0x8e59dd02f97b79c3 (10246997719728264643)
-FNV1a-64:      0x779a65e7023cd2e7 (8681568671143534311)
-MurmurHash3-32: 0x2e4ff723 (775550755)
-MurmurHash3-128: 0x6e08d7bd92574023aeb46101661a9c3d
-
-Computed all hashes in 37.742µs
+# Run the CLI
+./target/release/simplehash "hello world"
 ```
 
-## Why Use SimpleHash?
+## Verification
 
-- **Simplicity**: Easy-to-use API with clear function names.
-- **No dependencies**: Pure Rust implementation with no external dependencies.
-- **Fast and efficient**: Optimized for performance.
-- **Multiple hash variants**: Choose the hash function best suited for your use case.
+This project includes verification scripts to ensure the hash implementations match reference implementations:
 
-## Non-Cryptographic Hashing
+### FNV Verification
 
-Please note that these are non-cryptographic hash functions, appropriate for:
+```bash
+# Generate the FNV test corpus using Go
+go run generate_fnv_corpus.go
 
-- Hash tables and dictionaries
-- Checksums
-- Bloom filters
-- Data partitioning
-- Caches
+# Verify FNV implementations against Go's reference implementation
+cargo test test_against_go_fnv
+```
 
-They are NOT suitable for:
-- Password hashing
-- Digital signatures
-- Any security/cryptographic purpose
+### MurmurHash3 Verification
 
-## Testing and Validation
+```bash
+# Generate the MurmurHash3 test corpus
+uv run generate_mmh3_corpus.py
 
-The library includes tests to validate hash outputs against reference implementations. The MurmurHash3 implementation is validated against the Python `mmh3` library.
+# Run the verification tests
+cargo test test_against_mmh3_python
+```
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT
