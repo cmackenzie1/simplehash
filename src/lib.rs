@@ -1,7 +1,93 @@
-/// FNV-1 hash algorithm implementation (32-bit)
+//! # SimpleHash
+//!
+//! A simple, fast Rust library implementing common non-cryptographic hash functions.
+//!
+//! ## Overview
+//!
+//! This library provides implementations of several widely-used non-cryptographic hash functions:
+//! - FNV-1 (32-bit and 64-bit variants)
+//! - FNV-1a (32-bit and 64-bit variants)
+//! - MurmurHash3 (32-bit and 128-bit variants)
+//!
+//! Non-cryptographic hash functions are designed for fast computation and good distribution
+//! properties, making them suitable for hash tables, checksums, and other general-purpose
+//! hashing needs. They are NOT suitable for cryptographic purposes.
+//!
+//! ## Example Usage
+//!
+//! ```rust
+//! use simplehash::{fnv1_32, fnv1a_32, fnv1_64, fnv1a_64, murmurhash3_32, murmurhash3_128};
+//!
+//! let input = "hello world";
+//! let bytes = input.as_bytes();
+//!
+//! // Computing various hashes
+//! let fnv1_32_hash = fnv1_32(bytes);
+//! let fnv1a_32_hash = fnv1a_32(bytes);
+//! let fnv1_64_hash = fnv1_64(bytes);
+//! let fnv1a_64_hash = fnv1a_64(bytes);
+//! let murmur3_32_hash = murmurhash3_32(bytes, 0);
+//! let murmur3_128_hash = murmurhash3_128(bytes, 0);
+//!
+//! println!("FNV1-32: 0x{:x}", fnv1_32_hash);
+//! println!("FNV1a-32: 0x{:x}", fnv1a_32_hash);
+//! println!("FNV1-64: 0x{:x}", fnv1_64_hash);
+//! println!("FNV1a-64: 0x{:x}", fnv1a_64_hash);
+//! println!("MurmurHash3-32: 0x{:x}", murmur3_32_hash);
+//! println!("MurmurHash3-128: 0x{:x}", murmur3_128_hash);
+//! ```
+//!
+//! ## Choosing a Hash Function
+//!
+//! - **FNV-1a**: Good general-purpose hash function. Simple to implement with reasonable
+//!   performance and distribution properties. The FNV-1a variant is generally preferred
+//!   over FNV-1.
+//!
+//! - **MurmurHash3**: Offers excellent distribution properties and performance, especially
+//!   for larger inputs. The 128-bit variant provides better collision resistance.
+//!
+//! ## Implementation Notes
+//!
+//! All hash functions in this library:
+//! - Accept a byte slice (`&[u8]`) as input
+//! - Return an unsigned integer of the appropriate size
+//! - Are deterministic (same input always produces same output)
+//! - Are endian-agnostic (produce same result regardless of platform endianness)
+//!
+//! The MurmurHash3 implementations are compatible with reference implementations
+//! in other languages (Python's mmh3 package and the original C++ implementation).
+
+/// Computes the FNV-1 hash (32-bit) of the provided data.
 ///
-/// This is the original FNV-1 algorithm. For most purposes, you should
-/// prefer FNV-1a instead, which generally has better dispersion properties.
+/// This is the original FNV-1 algorithm developed by Glenn Fowler, Landon Curt Noll,
+/// and Phong Vo. For most purposes, you should prefer [`fnv1a_32`] instead, which
+/// generally has better dispersion properties.
+///
+/// # Algorithm
+///
+/// FNV-1 works by:
+/// 1. Starting with an initial basis value (2166136261 for 32-bit FNV-1)
+/// 2. For each byte in the input:
+///    a. Multiply the current hash by the FNV prime (16777619 for 32-bit)
+///    b. XOR the result with the current byte
+///
+/// # Parameters
+///
+/// * `data` - A slice of bytes to hash
+///
+/// # Returns
+///
+/// A 32-bit unsigned integer representing the hash value
+///
+/// # Example
+///
+/// ```
+/// use simplehash::fnv1_32;
+///
+/// let data = b"hello world";
+/// let hash = fnv1_32(data);
+/// println!("FNV1-32 hash: 0x{:08x}", hash);
+/// ```
 pub fn fnv1_32(data: &[u8]) -> u32 {
     // FNV constants for 32-bit
     const FNV_PRIME: u32 = 16777619;
@@ -17,9 +103,38 @@ pub fn fnv1_32(data: &[u8]) -> u32 {
     hash
 }
 
-/// FNV-1a hash algorithm implementation (32-bit)
+/// Computes the FNV-1a hash (32-bit) of the provided data.
 ///
-/// This is an improved version of the FNV-1 algorithm with better dispersion.
+/// FNV-1a is an improved variant of the original FNV-1 algorithm with better
+/// dispersion properties. It is generally considered superior to FNV-1 for most use cases.
+///
+/// # Algorithm
+///
+/// FNV-1a works by:
+/// 1. Starting with an initial basis value (2166136261 for 32-bit FNV-1a)
+/// 2. For each byte in the input:
+///    a. XOR the current hash with the current byte
+///    b. Multiply the result by the FNV prime (16777619 for 32-bit)
+///
+/// The key difference from FNV-1 is the order of operations (XOR then multiply, vs multiply then XOR).
+///
+/// # Parameters
+///
+/// * `data` - A slice of bytes to hash
+///
+/// # Returns
+///
+/// A 32-bit unsigned integer representing the hash value
+///
+/// # Example
+///
+/// ```
+/// use simplehash::fnv1a_32;
+///
+/// let data = b"hello world";
+/// let hash = fnv1a_32(data);
+/// println!("FNV1a-32 hash: 0x{:08x}", hash);
+/// ```
 pub fn fnv1a_32(data: &[u8]) -> u32 {
     // FNV constants for 32-bit
     const FNV_PRIME: u32 = 16777619;
@@ -35,7 +150,37 @@ pub fn fnv1a_32(data: &[u8]) -> u32 {
     hash
 }
 
-/// FNV-1 hash algorithm implementation (64-bit)
+/// Computes the FNV-1 hash (64-bit) of the provided data.
+///
+/// This is the 64-bit variant of the original FNV-1 algorithm, offering a larger
+/// hash space and reduced collision probability compared to the 32-bit version.
+/// For most purposes, the [`fnv1a_64`] variant is preferred for its better dispersion properties.
+///
+/// # Algorithm
+///
+/// FNV-1 (64-bit) works by:
+/// 1. Starting with an initial basis value (14695981039346656037 for 64-bit FNV-1)
+/// 2. For each byte in the input:
+///    a. Multiply the current hash by the FNV prime (1099511628211 for 64-bit)
+///    b. XOR the result with the current byte
+///
+/// # Parameters
+///
+/// * `data` - A slice of bytes to hash
+///
+/// # Returns
+///
+/// A 64-bit unsigned integer representing the hash value
+///
+/// # Example
+///
+/// ```
+/// use simplehash::fnv1_64;
+///
+/// let data = b"hello world";
+/// let hash = fnv1_64(data);
+/// println!("FNV1-64 hash: 0x{:016x}", hash);
+/// ```
 pub fn fnv1_64(data: &[u8]) -> u64 {
     // FNV constants for 64-bit
     const FNV_PRIME: u64 = 1099511628211;
@@ -51,7 +196,39 @@ pub fn fnv1_64(data: &[u8]) -> u64 {
     hash
 }
 
-/// FNV-1a hash algorithm implementation (64-bit)
+/// Computes the FNV-1a hash (64-bit) of the provided data.
+///
+/// FNV-1a (64-bit) is an improved variant of the original FNV-1 algorithm with better
+/// dispersion properties and a larger hash space than the 32-bit variant. It is generally
+/// preferred over FNV-1 (64-bit) for most applications.
+///
+/// # Algorithm
+///
+/// FNV-1a (64-bit) works by:
+/// 1. Starting with an initial basis value (14695981039346656037 for 64-bit FNV-1a)
+/// 2. For each byte in the input:
+///    a. XOR the current hash with the current byte
+///    b. Multiply the result by the FNV prime (1099511628211 for 64-bit)
+///
+/// The key difference from FNV-1 is the order of operations (XOR then multiply, vs multiply then XOR).
+///
+/// # Parameters
+///
+/// * `data` - A slice of bytes to hash
+///
+/// # Returns
+///
+/// A 64-bit unsigned integer representing the hash value
+///
+/// # Example
+///
+/// ```
+/// use simplehash::fnv1a_64;
+///
+/// let data = b"hello world";
+/// let hash = fnv1a_64(data);
+/// println!("FNV1a-64 hash: 0x{:016x}", hash);
+/// ```
 pub fn fnv1a_64(data: &[u8]) -> u64 {
     // FNV constants for 64-bit
     const FNV_PRIME: u64 = 1099511628211;
@@ -67,8 +244,47 @@ pub fn fnv1a_64(data: &[u8]) -> u64 {
     hash
 }
 
-/// MurmurHash3 32-bit implementation
-/// Based on the reference implementation by Austin Appleby
+/// Computes the MurmurHash3 32-bit hash of the provided data.
+///
+/// MurmurHash3 is a non-cryptographic hash function created by Austin Appleby in 2008.
+/// This 32-bit implementation is optimized for x86 architectures and provides excellent
+/// distribution, avalanche behavior, and performance characteristics.
+///
+/// # Algorithm
+///
+/// MurmurHash3 (32-bit) works by:
+/// 1. Processing the input in 4-byte (32-bit) blocks
+/// 2. Applying carefully chosen magic constants and bit manipulation operations
+/// 3. Processing any remaining bytes (the "tail")
+/// 4. Finalizing the hash with additional mixing to improve avalanche behavior
+///
+/// # Parameters
+///
+/// * `data` - A slice of bytes to hash
+/// * `seed` - A 32-bit seed value that can be used to create different hash values for the same input
+///
+/// # Returns
+///
+/// A 32-bit unsigned integer representing the hash value
+///
+/// # Example
+///
+/// ```
+/// use simplehash::murmurhash3_32;
+///
+/// let data = b"hello world";
+/// let hash = murmurhash3_32(data, 0);  // Using seed value 0
+/// println!("MurmurHash3-32 hash: 0x{:08x}", hash);
+///
+/// // Using a different seed produces a different hash
+/// let hash2 = murmurhash3_32(data, 42);
+/// println!("MurmurHash3-32 hash (seed 42): 0x{:08x}", hash2);
+/// ```
+///
+/// # Compatibility
+///
+/// This implementation is compatible with other MurmurHash3 implementations including the
+/// original C++ implementation by Austin Appleby and the Python mmh3 package.
 pub fn murmurhash3_32(data: &[u8], seed: u32) -> u32 {
     let c1: u32 = 0xcc9e2d51;
     let c2: u32 = 0x1b873593;
@@ -137,7 +353,50 @@ pub fn murmurhash3_32(data: &[u8], seed: u32) -> u32 {
     h1
 }
 
-/// MurmurHash3 128-bit implementation
+/// Computes the MurmurHash3 128-bit hash of the provided data.
+///
+/// MurmurHash3 is a non-cryptographic hash function created by Austin Appleby in 2008.
+/// This 128-bit implementation provides superior collision resistance compared to the 32-bit
+/// variant, making it suitable for applications requiring a larger hash space.
+///
+/// # Algorithm
+///
+/// MurmurHash3 (128-bit) works by:
+/// 1. Processing the input in 16-byte (128-bit) blocks
+/// 2. Using four 32-bit state variables (h1, h2, h3, h4) that are updated as data is processed
+/// 3. Applying carefully chosen magic constants and bit manipulation operations
+/// 4. Processing any remaining bytes (the "tail")
+/// 5. Finalizing the hash with additional mixing to improve avalanche behavior
+///
+/// # Parameters
+///
+/// * `data` - A slice of bytes to hash
+/// * `seed` - A 32-bit seed value that can be used to create different hash values for the same input
+///
+/// # Returns
+///
+/// A 128-bit unsigned integer representing the hash value
+///
+/// # Example
+///
+/// ```
+/// use simplehash::murmurhash3_128;
+///
+/// let data = b"hello world";
+/// let hash = murmurhash3_128(data, 0);  // Using seed value 0
+/// println!("MurmurHash3-128 hash: 0x{:032x}", hash);
+///
+/// // Using a different seed produces a different hash
+/// let hash2 = murmurhash3_128(data, 42);
+/// println!("MurmurHash3-128 hash (seed 42): 0x{:032x}", hash2);
+/// ```
+///
+/// # Compatibility
+///
+/// This implementation is compatible with other MurmurHash3 128-bit implementations including the
+/// original C++ implementation by Austin Appleby and the Python mmh3 package.
+///
+/// Note that the lower 64 bits of the result match the value returned by mmh3.hash64() in Python.
 pub fn murmurhash3_128(data: &[u8], seed: u32) -> u128 {
     const C1: u32 = 0x239b961b;
     const C2: u32 = 0xab0e9789;
