@@ -21,3 +21,12 @@ path = "src/main.rs"
 
 [dev-dependencies]
 serde_json = "1.0"
+criterion = "0.5"
+
+[[bench]]
+name = "fnv_benchmark"
+harness = false
+
+[[bench]]
+name = "hash_benchmark"
+harness = false
