@@ -1,9 +1,15 @@
-use crate::Hasher;
+use std::hash::Hasher as StdHasher;
 
 const FNV_32_OFFSET: u32 = 0x811c9dc5;
 const FNV_32_PRIME: u32 = 0x01000193;
 const FNV_64_OFFSET: u64 = 0xcbf29ce484222325;
 const FNV_64_PRIME: u64 = 0x00000100000001b3;
+
+// Helper trait to get the original hash value without converting to u64
+pub trait RawHasher {
+    type Output;
+    fn raw_finish(&self) -> Self::Output;
+}
 
 macro_rules! define_fnv_hasher {
     ($name:ident, $output:ty, $offset:expr, $prime:expr, $algorithm:ident) => {
@@ -28,20 +34,26 @@ macro_rules! define_fnv_hasher {
 
         impl Hasher for $name {
             type Output = $output;
+            
+            fn raw_finish(&self) -> Self::Output {
+                self.state
+            }
+        }
 
-            fn write(&mut self, data: &[u8]) {
-                for &byte in data {
+        impl StdHasher for $name {
+            #[inline]
+            fn finish(&self) -> u64 {
+                self.state as u64
+            }
+
+            #[inline]
+            fn write(&mut self, bytes: &[u8]) {
+                for &byte in bytes {
                     define_fnv_hasher!(@$algorithm self, byte, $prime, $output);
                 }
             }
 
-            fn reset(&mut self) {
-                self.state = $offset;
-            }
-
-            fn finish(&self) -> Self::Output {
-                self.state
-            }
+            // Default implementations for write_u8, write_u16, etc.
         }
     };
     (@fnv $self:ident, $byte:ident, $prime:expr, $type:ty) => {

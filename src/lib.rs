@@ -57,20 +57,8 @@
 //! The MurmurHash3 implementations are compatible with reference implementations
 //! in other languages (Python's mmh3 package and the original C++ implementation).
 
-/// A trait for hash functions.
-pub trait Hasher {
-    type Output;
-
-    /// Write data to the hash function.
-    fn write(&mut self, data: &[u8]);
-
-    /// Reset the hash function to its initial state.
-    #[allow(dead_code)]
-    fn reset(&mut self);
-
-    /// Finish the hash function and return the result.
-    fn finish(&self) -> Self::Output;
-}
+use std::hash::Hasher;
+use fnv::RawHasher;
 
 mod fnv;
 mod murmur;
@@ -113,7 +101,7 @@ pub use murmur::*;
 pub fn fnv1_32(data: &[u8]) -> u32 {
     let mut hasher = fnv::FnvHasher32::new();
     hasher.write(data);
-    hasher.finish()
+    hasher.raw_finish()
 }
 
 /// Computes the FNV-1a hash (32-bit) of the provided data.
@@ -151,7 +139,7 @@ pub fn fnv1_32(data: &[u8]) -> u32 {
 pub fn fnv1a_32(data: &[u8]) -> u32 {
     let mut hasher = fnv::Fnv1aHasher32::new();
     hasher.write(data);
-    hasher.finish()
+    hasher.raw_finish()
 }
 
 /// Computes the FNV-1 hash (64-bit) of the provided data.
@@ -188,7 +176,7 @@ pub fn fnv1a_32(data: &[u8]) -> u32 {
 pub fn fnv1_64(data: &[u8]) -> u64 {
     let mut hasher = fnv::FnvHasher64::new();
     hasher.write(data);
-    hasher.finish()
+    hasher.raw_finish()
 }
 
 /// Computes the FNV-1a hash (64-bit) of the provided data.
@@ -227,7 +215,7 @@ pub fn fnv1_64(data: &[u8]) -> u64 {
 pub fn fnv1a_64(data: &[u8]) -> u64 {
     let mut hasher = fnv::Fnv1aHasher64::new();
     hasher.write(data);
-    hasher.finish()
+    hasher.raw_finish()
 }
 
 /// Computes the MurmurHash3 32-bit hash of the provided data.
