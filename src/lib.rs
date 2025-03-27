@@ -57,6 +57,10 @@
 //! The MurmurHash3 implementations are compatible with reference implementations
 //! in other languages (Python's mmh3 package and the original C++ implementation).
 
+use fnv::Hasher;
+
+mod fnv;
+
 /// Computes the FNV-1 hash (32-bit) of the provided data.
 ///
 /// This is the original FNV-1 algorithm developed by Glenn Fowler, Landon Curt Noll,
@@ -89,18 +93,9 @@
 /// println!("FNV1-32 hash: 0x{:08x}", hash);
 /// ```
 pub fn fnv1_32(data: &[u8]) -> u32 {
-    // FNV constants for 32-bit
-    const FNV_PRIME: u32 = 16777619;
-    const FNV_OFFSET_BASIS: u32 = 2166136261;
-
-    let mut hash = FNV_OFFSET_BASIS;
-
-    for &byte in data {
-        hash = hash.wrapping_mul(FNV_PRIME);
-        hash ^= byte as u32;
-    }
-
-    hash
+    let mut hasher = fnv::FnvHasher32::new();
+    hasher.write(data);
+    hasher.finish()
 }
 
 /// Computes the FNV-1a hash (32-bit) of the provided data.
@@ -136,18 +131,9 @@ pub fn fnv1_32(data: &[u8]) -> u32 {
 /// println!("FNV1a-32 hash: 0x{:08x}", hash);
 /// ```
 pub fn fnv1a_32(data: &[u8]) -> u32 {
-    // FNV constants for 32-bit
-    const FNV_PRIME: u32 = 16777619;
-    const FNV_OFFSET_BASIS: u32 = 2166136261;
-
-    let mut hash = FNV_OFFSET_BASIS;
-
-    for &byte in data {
-        hash ^= byte as u32;
-        hash = hash.wrapping_mul(FNV_PRIME);
-    }
-
-    hash
+    let mut hasher = fnv::Fnv1aHasher32::new();
+    hasher.write(data);
+    hasher.finish()
 }
 
 /// Computes the FNV-1 hash (64-bit) of the provided data.
@@ -182,18 +168,9 @@ pub fn fnv1a_32(data: &[u8]) -> u32 {
 /// println!("FNV1-64 hash: 0x{:016x}", hash);
 /// ```
 pub fn fnv1_64(data: &[u8]) -> u64 {
-    // FNV constants for 64-bit
-    const FNV_PRIME: u64 = 1099511628211;
-    const FNV_OFFSET_BASIS: u64 = 14695981039346656037;
-
-    let mut hash = FNV_OFFSET_BASIS;
-
-    for &byte in data {
-        hash = hash.wrapping_mul(FNV_PRIME);
-        hash ^= byte as u64;
-    }
-
-    hash
+    let mut hasher = fnv::FnvHasher64::new();
+    hasher.write(data);
+    hasher.finish()
 }
 
 /// Computes the FNV-1a hash (64-bit) of the provided data.
@@ -230,18 +207,9 @@ pub fn fnv1_64(data: &[u8]) -> u64 {
 /// println!("FNV1a-64 hash: 0x{:016x}", hash);
 /// ```
 pub fn fnv1a_64(data: &[u8]) -> u64 {
-    // FNV constants for 64-bit
-    const FNV_PRIME: u64 = 1099511628211;
-    const FNV_OFFSET_BASIS: u64 = 14695981039346656037;
-
-    let mut hash = FNV_OFFSET_BASIS;
-
-    for &byte in data {
-        hash ^= byte as u64;
-        hash = hash.wrapping_mul(FNV_PRIME);
-    }
-
-    hash
+    let mut hasher = fnv::Fnv1aHasher64::new();
+    hasher.write(data);
+    hasher.finish()
 }
 
 /// Computes the MurmurHash3 32-bit hash of the provided data.
