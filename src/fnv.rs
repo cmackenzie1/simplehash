@@ -1,18 +1,9 @@
+use crate::Hasher;
+
 const FNV_32_OFFSET: u32 = 0x811c9dc5;
 const FNV_32_PRIME: u32 = 0x01000193;
 const FNV_64_OFFSET: u64 = 0xcbf29ce484222325;
 const FNV_64_PRIME: u64 = 0x00000100000001b3;
-
-pub trait Hasher {
-    type Output;
-
-    fn write(&mut self, data: &[u8]);
-
-    #[allow(dead_code)]
-    fn reset(&mut self);
-
-    fn finish(&self) -> Self::Output;
-}
 
 macro_rules! define_fnv_hasher {
     ($name:ident, $output:ty, $offset:expr, $prime:expr, $algorithm:ident) => {
@@ -26,6 +17,12 @@ macro_rules! define_fnv_hasher {
                 Self {
                     state: $offset,
                 }
+            }
+        }
+
+        impl Default for $name {
+            fn default() -> Self {
+                Self::new()
             }
         }
 
