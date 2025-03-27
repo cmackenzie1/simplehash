@@ -72,6 +72,28 @@ uv run generate_mmh3_corpus.py
 cargo test test_against_mmh3_python
 ```
 
+## Benchmarks
+
+SimpleHash includes benchmarks using the Criterion.rs library. To run the benchmarks:
+
+```bash
+# Run all benchmarks
+cargo bench
+
+# Run only FNV benchmarks
+cargo bench --bench fnv_benchmark
+
+# Run comparative hash benchmarks
+cargo bench --bench hash_benchmark
+```
+
+The benchmarks compare:
+- FNV hashing implementations (FNV-1 and FNV-1a, 32-bit and 64-bit variants)
+- MurmurHash3 implementations (32-bit and 128-bit)
+- Performance across various input sizes
+- Different input patterns (zeros, ones, alternating, incremental)
+- Realistic data inputs (strings, URLs, JSON, UUIDs)
+
 ## License
 
 MIT
