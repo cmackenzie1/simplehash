@@ -1,6 +1,6 @@
 [package]
 name = "simplehash"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 authors = ["Cole Mackenzie <colemackenzie1@gmail.com>"]
 description = "A simple, fast Rust library implementing common non-cryptographic hash functions"

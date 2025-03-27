@@ -112,6 +112,9 @@ impl Hasher for MurmurHasher32 {
 }
 
 // MurmurHash3 128-bit hasher
+// Note: MurmurHash3 128-bit cannot implement the standard Hasher trait
+// because it produces a 128-bit hash which cannot be represented by u64
+// returned by the finish() method required by std::hash::Hasher
 #[derive(Debug, Copy, Clone)]
 pub struct MurmurHasher128 {
     h1: u32,

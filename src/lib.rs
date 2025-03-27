@@ -13,6 +13,9 @@
 //! properties, making them suitable for hash tables, checksums, and other general-purpose
 //! hashing needs. They are NOT suitable for cryptographic purposes.
 //!
+//! All hash functions in this library implement the `std::hash::Hasher` trait, making them
+//! compatible with Rust's standard collections like `HashMap` and `HashSet`.
+//!
 //! ## Example Usage
 //!
 //! ```rust
@@ -45,6 +48,60 @@
 //!
 //! - **MurmurHash3**: Offers excellent distribution properties and performance, especially
 //!   for larger inputs. The 128-bit variant provides better collision resistance.
+//!
+//! ## Using with HashMap and HashSet
+//!
+//! All hashers in this library implement the `std::hash::Hasher` trait, making them
+//! compatible with standard collections. This allows you to use these faster, non-cryptographic
+//! hashers in place of the default SipHash implementation when performance is a priority.
+//!
+//! ```rust
+//! use simplehash::fnv::Fnv1aHasher64;
+//! use simplehash::murmur::MurmurHasher32;
+//! use std::collections::{HashMap, HashSet};
+//! use std::hash::BuildHasherDefault;
+//!
+//! // Using FNV-1a with HashMap
+//! let mut map: HashMap<String, u32, BuildHasherDefault<Fnv1aHasher64>> =
+//!     HashMap::with_hasher(BuildHasherDefault::<Fnv1aHasher64>::default());
+//! map.insert("key".to_string(), 42);
+//!
+//! // Using FNV-1a with HashSet
+//! let mut set: HashSet<String, BuildHasherDefault<Fnv1aHasher64>> =
+//!     HashSet::with_hasher(BuildHasherDefault::<Fnv1aHasher64>::default());
+//! set.insert("value".to_string());
+//!
+//! // Create a BuildHasher for MurmurHash3
+//! #[derive(Default, Clone)]
+//! struct MurmurHash3BuildHasher;
+//!
+//! impl std::hash::BuildHasher for MurmurHash3BuildHasher {
+//!     type Hasher = MurmurHasher32;
+//!
+//!     fn build_hasher(&self) -> Self::Hasher {
+//!         MurmurHasher32::new(0) // Using seed 0
+//!     }
+//! }
+//!
+//! // Using MurmurHash3 with HashMap
+//! let mut murmur_map: HashMap<String, u32, MurmurHash3BuildHasher> =
+//!     HashMap::with_hasher(MurmurHash3BuildHasher);
+//! murmur_map.insert("key".to_string(), 42);
+//! ```
+//!
+//! ### Performance Characteristics
+//!
+//! * **FNV-1a**:
+//!   - Very fast for small keys (like short strings, integers)
+//!   - Uses less memory than SipHash (Rust's default)
+//!   - Particularly effective for HashMaps with small keys
+//!   - Not recommended for untrusted inputs (e.g., network data) due to lack of DoS protection
+//!
+//! * **MurmurHash3**:
+//!   - Excellent performance for medium to large inputs
+//!   - Better distribution properties than FNV
+//!   - Good compromise between speed and collision resistance
+//!   - The 32-bit version is faster, while the 128-bit version has better collision resistance
 //!
 //! ## Implementation Notes
 //!
