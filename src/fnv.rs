@@ -7,7 +7,10 @@ pub trait Hasher {
     type Output;
 
     fn write(&mut self, data: &[u8]);
+
+    #[allow(dead_code)]
     fn reset(&mut self);
+
     fn finish(&self) -> Self::Output;
 }
 
