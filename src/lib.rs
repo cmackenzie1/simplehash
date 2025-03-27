@@ -59,8 +59,8 @@
 
 use std::hash::Hasher;
 
-mod fnv;
-mod murmur;
+pub mod fnv;
+pub mod murmur;
 
 // Re-export for users to use directly
 pub use fnv::*;

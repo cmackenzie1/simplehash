@@ -1,42 +1,19 @@
 use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
-use simplehash::{Fnv1aHasher64, MurmurHasher32};
+use simplehash::fnv::Fnv1aHasher64;
+use simplehash::murmur::MurmurHasher32;
 use std::collections::HashMap;
-use std::hash::{BuildHasher, BuildHasherDefault, Hasher};
-use std::time::Instant; // Import the specific hashers
+use std::hash::{BuildHasher, BuildHasherDefault};
+use std::time::Instant;
 
-// Custom BuildHasher for MurmurHash3
-struct MurmurHash3Hasher32(u32);
-
-impl MurmurHash3Hasher32 {
-    fn new() -> Self {
-        Self(0)
-    }
-}
-
-impl Default for MurmurHash3Hasher32 {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl Hasher for MurmurHash3Hasher32 {
-    fn finish(&self) -> u64 {
-        self.0 as u64
-    }
-
-    fn write(&mut self, bytes: &[u8]) {
-        self.0 = simplehash::murmurhash3_32(bytes, 0);
-    }
-}
-
+// BuildHasher for MurmurHash3
 #[derive(Default, Clone)]
 struct MurmurHash3BuildHasher;
 
 impl BuildHasher for MurmurHash3BuildHasher {
-    type Hasher = MurmurHash3Hasher32;
+    type Hasher = MurmurHasher32;
 
     fn build_hasher(&self) -> Self::Hasher {
-        MurmurHash3Hasher32::new()
+        MurmurHasher32::new(0) // Use seed 0
     }
 }
 
@@ -107,8 +84,8 @@ fn bench_hashmap_with_different_hashers(c: &mut Criterion) {
                     let mut total_duration = std::time::Duration::new(0, 0);
 
                     for _ in 0..iters {
-                        let mut map: HashMap<String, u32, BuildHasherDefault<MurmurHasher32>> =
-                            HashMap::with_hasher(BuildHasherDefault::<MurmurHasher32>::default());
+                        let mut map: HashMap<String, u32, MurmurHash3BuildHasher> =
+                            HashMap::with_hasher(MurmurHash3BuildHasher);
 
                         let start = Instant::now();
 
