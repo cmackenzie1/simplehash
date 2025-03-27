@@ -57,8 +57,8 @@
 //! The MurmurHash3 implementations are compatible with reference implementations
 //! in other languages (Python's mmh3 package and the original C++ implementation).
 
-use std::hash::Hasher;
 use fnv::RawHasher;
+use std::hash::Hasher;
 
 mod fnv;
 mod murmur;

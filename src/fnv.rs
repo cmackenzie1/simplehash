@@ -32,9 +32,9 @@ macro_rules! define_fnv_hasher {
             }
         }
 
-        impl Hasher for $name {
+        impl RawHasher for $name {
             type Output = $output;
-            
+
             fn raw_finish(&self) -> Self::Output {
                 self.state
             }
@@ -70,3 +70,5 @@ define_fnv_hasher!(FnvHasher32, u32, FNV_32_OFFSET, FNV_32_PRIME, fnv);
 define_fnv_hasher!(FnvHasher64, u64, FNV_64_OFFSET, FNV_64_PRIME, fnv);
 define_fnv_hasher!(Fnv1aHasher32, u32, FNV_32_OFFSET, FNV_32_PRIME, fnv1a);
 define_fnv_hasher!(Fnv1aHasher64, u64, FNV_64_OFFSET, FNV_64_PRIME, fnv1a);
+
+// The hashers are already publicly accessible thanks to the macro

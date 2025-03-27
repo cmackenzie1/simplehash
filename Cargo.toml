@@ -30,3 +30,7 @@ harness = false
 [[bench]]
 name = "hash_benchmark"
 harness = false
+
+[[bench]]
+name = "hashmap_benchmark"
+harness = false
