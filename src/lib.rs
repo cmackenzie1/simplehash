@@ -57,7 +57,6 @@
 //! The MurmurHash3 implementations are compatible with reference implementations
 //! in other languages (Python's mmh3 package and the original C++ implementation).
 
-use fnv::RawHasher;
 use std::hash::Hasher;
 
 mod fnv;
@@ -98,10 +97,11 @@ pub use murmur::*;
 /// let hash = fnv1_32(data);
 /// println!("FNV1-32 hash: 0x{:08x}", hash);
 /// ```
+#[inline]
 pub fn fnv1_32(data: &[u8]) -> u32 {
     let mut hasher = fnv::FnvHasher32::new();
     hasher.write(data);
-    hasher.raw_finish()
+    hasher.finish_raw()
 }
 
 /// Computes the FNV-1a hash (32-bit) of the provided data.
@@ -136,10 +136,11 @@ pub fn fnv1_32(data: &[u8]) -> u32 {
 /// let hash = fnv1a_32(data);
 /// println!("FNV1a-32 hash: 0x{:08x}", hash);
 /// ```
+#[inline]
 pub fn fnv1a_32(data: &[u8]) -> u32 {
     let mut hasher = fnv::Fnv1aHasher32::new();
     hasher.write(data);
-    hasher.raw_finish()
+    hasher.finish_raw()
 }
 
 /// Computes the FNV-1 hash (64-bit) of the provided data.
@@ -173,10 +174,11 @@ pub fn fnv1a_32(data: &[u8]) -> u32 {
 /// let hash = fnv1_64(data);
 /// println!("FNV1-64 hash: 0x{:016x}", hash);
 /// ```
+#[inline]
 pub fn fnv1_64(data: &[u8]) -> u64 {
     let mut hasher = fnv::FnvHasher64::new();
     hasher.write(data);
-    hasher.raw_finish()
+    hasher.finish_raw()
 }
 
 /// Computes the FNV-1a hash (64-bit) of the provided data.
@@ -212,10 +214,11 @@ pub fn fnv1_64(data: &[u8]) -> u64 {
 /// let hash = fnv1a_64(data);
 /// println!("FNV1a-64 hash: 0x{:016x}", hash);
 /// ```
+#[inline]
 pub fn fnv1a_64(data: &[u8]) -> u64 {
     let mut hasher = fnv::Fnv1aHasher64::new();
     hasher.write(data);
-    hasher.raw_finish()
+    hasher.finish()
 }
 
 /// Computes the MurmurHash3 32-bit hash of the provided data.
@@ -259,10 +262,11 @@ pub fn fnv1a_64(data: &[u8]) -> u64 {
 ///
 /// This implementation is compatible with other MurmurHash3 implementations including the
 /// original C++ implementation by Austin Appleby and the Python mmh3 package.
+#[inline]
 pub fn murmurhash3_32(data: &[u8], seed: u32) -> u32 {
     let mut hasher = murmur::MurmurHasher32::new(seed);
     hasher.write(data);
-    hasher.finish()
+    hasher.finish_u32()
 }
 
 /// Computes the MurmurHash3 128-bit hash of the provided data.
@@ -309,10 +313,11 @@ pub fn murmurhash3_32(data: &[u8], seed: u32) -> u32 {
 /// original C++ implementation by Austin Appleby and the Python mmh3 package.
 ///
 /// Note that the lower 64 bits of the result match the value returned by mmh3.hash64() in Python.
+#[inline]
 pub fn murmurhash3_128(data: &[u8], seed: u32) -> u128 {
     let mut hasher = murmur::MurmurHasher128::new(seed);
     hasher.write(data);
-    hasher.finish()
+    hasher.finish_u128()
 }
 
 // Test corpus for validation against Python mmh3 implementation
