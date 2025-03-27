@@ -1,4 +1,4 @@
-pub use crate::Hasher;
+use std::hash::Hasher;
 
 // Constants for MurmurHash3 32-bit
 const C1_32: u32 = 0xcc9e2d51;
@@ -15,22 +15,42 @@ const C4_128: u32 = 0xa1e38b93;
 pub struct MurmurHasher32 {
     state: u32,
     length: usize,
-    seed: u32,
 }
 
 impl MurmurHasher32 {
+    #[inline]
     pub fn new(seed: u32) -> Self {
         Self {
             state: seed,
             length: 0,
-            seed,
         }
+    }
+
+    #[inline]
+    pub fn finish_u32(&self) -> u32 {
+        let mut h1 = self.state;
+
+        // Finalization
+        h1 ^= self.length as u32;
+        h1 = h1 ^ (h1 >> 16);
+        h1 = h1.wrapping_mul(0x85ebca6b);
+        h1 = h1 ^ (h1 >> 13);
+        h1 = h1.wrapping_mul(0xc2b2ae35);
+        h1 = h1 ^ (h1 >> 16);
+
+        h1
+    }
+}
+
+impl Default for MurmurHasher32 {
+    #[inline]
+    fn default() -> Self {
+        Self::new(0)
     }
 }
 
 impl Hasher for MurmurHasher32 {
-    type Output = u32;
-
+    #[inline]
     fn write(&mut self, data: &[u8]) {
         let nblocks = data.len() / 4;
         self.length += data.len();
@@ -85,23 +105,9 @@ impl Hasher for MurmurHasher32 {
         }
     }
 
-    fn reset(&mut self) {
-        self.state = self.seed;
-        self.length = 0;
-    }
-
-    fn finish(&self) -> Self::Output {
-        let mut h1 = self.state;
-
-        // Finalization
-        h1 ^= self.length as u32;
-        h1 = h1 ^ (h1 >> 16);
-        h1 = h1.wrapping_mul(0x85ebca6b);
-        h1 = h1 ^ (h1 >> 13);
-        h1 = h1.wrapping_mul(0xc2b2ae35);
-        h1 = h1 ^ (h1 >> 16);
-
-        h1
+    #[inline]
+    fn finish(&self) -> u64 {
+        self.finish_u32() as u64
     }
 }
 
@@ -113,10 +119,10 @@ pub struct MurmurHasher128 {
     h3: u32,
     h4: u32,
     length: usize,
-    seed: u32,
 }
 
 impl MurmurHasher128 {
+    #[inline]
     pub fn new(seed: u32) -> Self {
         Self {
             h1: seed,
@@ -124,15 +130,13 @@ impl MurmurHasher128 {
             h3: seed,
             h4: seed,
             length: 0,
-            seed,
         }
     }
 }
 
-impl Hasher for MurmurHasher128 {
-    type Output = u128;
-
-    fn write(&mut self, data: &[u8]) {
+impl MurmurHasher128 {
+    #[inline]
+    pub fn write(&mut self, data: &[u8]) {
         let nblocks = data.len() / 16;
         self.length += data.len();
 
@@ -524,15 +528,8 @@ impl Hasher for MurmurHasher128 {
         }
     }
 
-    fn reset(&mut self) {
-        self.h1 = self.seed;
-        self.h2 = self.seed;
-        self.h3 = self.seed;
-        self.h4 = self.seed;
-        self.length = 0;
-    }
-
-    fn finish(&self) -> Self::Output {
+    #[inline]
+    pub fn finish_u128(&self) -> u128 {
         let mut h1 = self.h1;
         let mut h2 = self.h2;
         let mut h3 = self.h3;

@@ -1,6 +1,5 @@
 use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
-use simplehash::fnv::Fnv1aHasher64;
-use simplehash::murmur::MurmurHasher32;
+use simplehash::{Fnv1aHasher64, MurmurHasher32};
 use std::collections::HashMap;
 use std::hash::{BuildHasher, BuildHasherDefault, Hasher};
 use std::time::Instant; // Import the specific hashers
@@ -108,8 +107,8 @@ fn bench_hashmap_with_different_hashers(c: &mut Criterion) {
                     let mut total_duration = std::time::Duration::new(0, 0);
 
                     for _ in 0..iters {
-                        let mut map: HashMap<String, u32, MurmurHasher32> =
-                            HashMap::with_hasher(MurmurHasher32);
+                        let mut map: HashMap<String, u32, BuildHasherDefault<MurmurHasher32>> =
+                            HashMap::with_hasher(BuildHasherDefault::<MurmurHasher32>::default());
 
                         let start = Instant::now();
 
