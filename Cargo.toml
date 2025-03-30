@@ -22,6 +22,7 @@ path = "src/main.rs"
 [dev-dependencies]
 serde_json = "1.0"
 criterion = "0.5"
+rand = "0.8"
 
 [[bench]]
 name = "fnv_benchmark"
@@ -33,4 +34,8 @@ harness = false
 
 [[bench]]
 name = "hashmap_benchmark"
+harness = false
+
+[[bench]]
+name = "hashmap_key_length_benchmark"
 harness = false
