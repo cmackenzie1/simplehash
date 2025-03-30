@@ -1,19 +1,19 @@
 use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
 use simplehash::fnv::Fnv1aHasher64;
-use simplehash::murmur::MurmurHasher32;
+use simplehash::murmur::MurmurHasher64;
 use std::collections::HashMap;
 use std::hash::{BuildHasher, BuildHasherDefault};
 use std::time::Instant;
 
-// BuildHasher for MurmurHash3
+// BuildHasher for MurmurHash3 64-bit
 #[derive(Default, Clone)]
 struct MurmurHash3BuildHasher;
 
 impl BuildHasher for MurmurHash3BuildHasher {
-    type Hasher = MurmurHasher32;
+    type Hasher = MurmurHasher64;
 
     fn build_hasher(&self) -> Self::Hasher {
-        MurmurHasher32::new(0) // Use seed 0
+        MurmurHasher64::new(0) // Use seed 0
     }
 }
 
@@ -76,9 +76,9 @@ fn bench_hashmap_with_different_hashers(c: &mut Criterion) {
             });
         });
 
-        // 3. HashMap with MurmurHash3-32
+        // 3. HashMap with MurmurHash3-64
         group.bench_function(
-            BenchmarkId::new("MurmurHash3-32-HashMap-Insert", size),
+            BenchmarkId::new("MurmurHash3-64-HashMap-Insert", size),
             |b| {
                 b.iter_custom(|iters| {
                     let mut total_duration = std::time::Duration::new(0, 0);
@@ -137,9 +137,9 @@ fn bench_hashmap_with_different_hashers(c: &mut Criterion) {
             });
         });
 
-        // 3. HashMap with MurmurHash3-32 - Lookup
+        // 3. HashMap with MurmurHash3-64 - Lookup
         group.bench_function(
-            BenchmarkId::new("MurmurHash3-32-HashMap-Lookup", size),
+            BenchmarkId::new("MurmurHash3-64-HashMap-Lookup", size),
             |b| {
                 let mut map: HashMap<String, u32, MurmurHash3BuildHasher> =
                     HashMap::with_hasher(MurmurHash3BuildHasher);
@@ -220,8 +220,8 @@ fn bench_collision_resistance(c: &mut Criterion) {
         });
     });
 
-    // 3. HashMap with MurmurHash3-32
-    group.bench_function("MurmurHash3-32-HashMap-SimilarKeys", |b| {
+    // 3. HashMap with MurmurHash3-64
+    group.bench_function("MurmurHash3-64-HashMap-SimilarKeys", |b| {
         b.iter_custom(|iters| {
             let mut total_duration = std::time::Duration::new(0, 0);
 

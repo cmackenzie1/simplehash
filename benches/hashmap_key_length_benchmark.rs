@@ -2,20 +2,20 @@ use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_ma
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
 use simplehash::fnv::Fnv1aHasher64;
-use simplehash::murmur::MurmurHasher32;
+use simplehash::murmur::MurmurHasher64;
 use std::collections::HashMap;
 use std::hash::{BuildHasher, BuildHasherDefault};
 use std::time::Instant;
 
-// BuildHasher for MurmurHash3
+// BuildHasher for MurmurHash3 64-bit
 #[derive(Default, Clone)]
 struct MurmurHash3BuildHasher;
 
 impl BuildHasher for MurmurHash3BuildHasher {
-    type Hasher = MurmurHasher32;
+    type Hasher = MurmurHasher64;
 
     fn build_hasher(&self) -> Self::Hasher {
-        MurmurHasher32::new(0) // Use seed 0
+        MurmurHasher64::new(0) // Use seed 0
     }
 }
 
@@ -94,9 +94,9 @@ fn bench_hashmap_key_lengths(c: &mut Criterion) {
             });
         });
 
-        // 3. HashMap with MurmurHash3-32 - Insert
+        // 3. HashMap with MurmurHash3-64 - Insert
         group.bench_function(
-            BenchmarkId::new("MurmurHash3-32-HashMap-Insert", length),
+            BenchmarkId::new("MurmurHash3-64-HashMap-Insert", length),
             |b| {
                 b.iter_custom(|iters| {
                     let mut total_duration = std::time::Duration::new(0, 0);
@@ -164,9 +164,9 @@ fn bench_hashmap_key_lengths(c: &mut Criterion) {
             });
         });
 
-        // 3. HashMap with MurmurHash3-32 - Lookup
+        // 3. HashMap with MurmurHash3-64 - Lookup
         group.bench_function(
-            BenchmarkId::new("MurmurHash3-32-HashMap-Lookup", length),
+            BenchmarkId::new("MurmurHash3-64-HashMap-Lookup", length),
             |b| {
                 let mut map: HashMap<String, u32, MurmurHash3BuildHasher> =
                     HashMap::with_hasher(MurmurHash3BuildHasher);
@@ -252,9 +252,9 @@ fn bench_hashmap_fill_factor(c: &mut Criterion) {
             });
         });
 
-        // 3. HashMap with MurmurHash3-32
+        // 3. HashMap with MurmurHash3-64
         group.bench_function(
-            BenchmarkId::new("MurmurHash3-32-HashMap", fill_factor),
+            BenchmarkId::new("MurmurHash3-64-HashMap", fill_factor),
             |b| {
                 b.iter_custom(|iters| {
                     let mut total_duration = std::time::Duration::new(0, 0);
