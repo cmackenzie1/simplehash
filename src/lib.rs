@@ -7,7 +7,7 @@
 //! This library provides implementations of several widely-used non-cryptographic hash functions:
 //! - FNV-1 (32-bit and 64-bit variants)
 //! - FNV-1a (32-bit and 64-bit variants)
-//! - MurmurHash3 (32-bit and 128-bit variants)
+//! - MurmurHash3 (32-bit, 64-bit, and 128-bit variants)
 //!
 //! Non-cryptographic hash functions are designed for fast computation and good distribution
 //! properties, making them suitable for hash tables, checksums, and other general-purpose
@@ -19,7 +19,7 @@
 //! ## Example Usage
 //!
 //! ```rust
-//! use simplehash::{fnv1_32, fnv1a_32, fnv1_64, fnv1a_64, murmurhash3_32, murmurhash3_128};
+//! use simplehash::{fnv1_32, fnv1a_32, fnv1_64, fnv1a_64, murmurhash3_32, murmurhash3_64, murmurhash3_128};
 //!
 //! let input = "hello world";
 //! let bytes = input.as_bytes();
@@ -30,6 +30,7 @@
 //! let fnv1_64_hash = fnv1_64(bytes);
 //! let fnv1a_64_hash = fnv1a_64(bytes);
 //! let murmur3_32_hash = murmurhash3_32(bytes, 0);
+//! let murmur3_64_hash = murmurhash3_64(bytes, 0);
 //! let murmur3_128_hash = murmurhash3_128(bytes, 0);
 //!
 //! println!("FNV1-32: 0x{:x}", fnv1_32_hash);
@@ -37,6 +38,7 @@
 //! println!("FNV1-64: 0x{:x}", fnv1_64_hash);
 //! println!("FNV1a-64: 0x{:x}", fnv1a_64_hash);
 //! println!("MurmurHash3-32: 0x{:x}", murmur3_32_hash);
+//! println!("MurmurHash3-64: 0x{:x}", murmur3_64_hash);
 //! println!("MurmurHash3-128: 0x{:x}", murmur3_128_hash);
 //! ```
 //!
@@ -57,7 +59,7 @@
 //!
 //! ```rust
 //! use simplehash::fnv::Fnv1aHasher64;
-//! use simplehash::murmur::MurmurHasher32;
+//! use simplehash::murmur::{MurmurHasher32, MurmurHasher64};
 //! use std::collections::{HashMap, HashSet};
 //! use std::hash::BuildHasherDefault;
 //!
@@ -71,11 +73,11 @@
 //!     HashSet::with_hasher(BuildHasherDefault::<Fnv1aHasher64>::default());
 //! set.insert("value".to_string());
 //!
-//! // Create a BuildHasher for MurmurHash3
+//! // Create a BuildHasher for MurmurHash3 32-bit
 //! #[derive(Default, Clone)]
-//! struct MurmurHash3BuildHasher;
+//! struct MurmurHash3_32BuildHasher;
 //!
-//! impl std::hash::BuildHasher for MurmurHash3BuildHasher {
+//! impl std::hash::BuildHasher for MurmurHash3_32BuildHasher {
 //!     type Hasher = MurmurHasher32;
 //!
 //!     fn build_hasher(&self) -> Self::Hasher {
@@ -83,10 +85,27 @@
 //!     }
 //! }
 //!
-//! // Using MurmurHash3 with HashMap
-//! let mut murmur_map: HashMap<String, u32, MurmurHash3BuildHasher> =
-//!     HashMap::with_hasher(MurmurHash3BuildHasher);
-//! murmur_map.insert("key".to_string(), 42);
+//! // Create a BuildHasher for MurmurHash3 64-bit
+//! #[derive(Default, Clone)]
+//! struct MurmurHash3_64BuildHasher;
+//!
+//! impl std::hash::BuildHasher for MurmurHash3_64BuildHasher {
+//!     type Hasher = MurmurHasher64;
+//!
+//!     fn build_hasher(&self) -> Self::Hasher {
+//!         MurmurHasher64::new(0) // Using seed 0
+//!     }
+//! }
+//!
+//! // Using MurmurHash3 32-bit with HashMap
+//! let mut murmur32_map: HashMap<String, u32, MurmurHash3_32BuildHasher> =
+//!     HashMap::with_hasher(MurmurHash3_32BuildHasher);
+//! murmur32_map.insert("key".to_string(), 42);
+//!
+//! // Using MurmurHash3 64-bit with HashMap
+//! let mut murmur64_map: HashMap<String, u32, MurmurHash3_64BuildHasher> =
+//!     HashMap::with_hasher(MurmurHash3_64BuildHasher);
+//! murmur64_map.insert("key".to_string(), 42);
 //! ```
 //!
 //! ### Performance Characteristics
@@ -102,6 +121,7 @@
 //!   - Better distribution properties than FNV
 //!   - Good compromise between speed and collision resistance
 //!   - The 32-bit version is faster, while the 128-bit version has better collision resistance
+//!   - When developers need a 64-bit hash, they can use the 64-bit variant which uses half of the 128-bit output
 //!
 //! ## Implementation Notes
 //!
@@ -326,6 +346,46 @@ pub fn murmurhash3_32(data: &[u8], seed: u32) -> u32 {
     hasher.finish_u32()
 }
 
+/// Computes the MurmurHash3 64-bit hash of the provided data.
+///
+/// This is implemented by using the lower 64 bits of the 128-bit MurmurHash3 algorithm.
+/// When developers need a 64-bit hash, they can simply use half of the 128-bit variant,
+/// which provides good performance and distribution properties while producing a 64-bit result.
+///
+/// # Parameters
+///
+/// * `data` - A slice of bytes to hash
+/// * `seed` - A 32-bit seed value that can be used to create different hash values for the same input
+///
+/// # Returns
+///
+/// A 64-bit unsigned integer representing the hash value
+///
+/// # Example
+///
+/// ```rust
+/// use simplehash::murmurhash3_64;
+///
+/// let data = b"hello world";
+/// let hash = murmurhash3_64(data, 0);  // Using seed value 0
+/// println!("MurmurHash3-64 hash: 0x{:016x}", hash);
+///
+/// // Using a different seed produces a different hash
+/// let hash2 = murmurhash3_64(data, 42);
+/// println!("MurmurHash3-64 hash (seed 42): 0x{:016x}", hash2);
+/// ```
+///
+/// # Compatibility
+///
+/// This implementation is compatible with other MurmurHash3 64-bit implementations.
+/// The value returned matches the lower 64 bits returned by mmh3.hash64() in Python.
+#[inline]
+pub fn murmurhash3_64(data: &[u8], seed: u32) -> u64 {
+    let mut hasher = murmur::MurmurHasher64::new(seed);
+    hasher.write(data);
+    hasher.finish_u64()
+}
+
 /// Computes the MurmurHash3 128-bit hash of the provided data.
 ///
 /// MurmurHash3 is a non-cryptographic hash function created by Austin Appleby in 2008.
@@ -450,6 +510,32 @@ mod tests {
         println!(
             "MurmurHash3-32 for 'aaaa' (seed 0x9747b28c): 0x{:x} ({})",
             result4, result4
+        );
+    }
+
+    #[test]
+    fn test_murmurhash3_64() {
+        // Test with debug output
+        let data = b"hello world";
+        let result = murmurhash3_64(data, 0);
+        println!(
+            "MurmurHash3-64 for 'hello world' (seed 0): 0x{:x} ({})",
+            result, result
+        );
+
+        let empty = b"";
+        let result_empty = murmurhash3_64(empty, 0);
+        println!(
+            "MurmurHash3-64 for '' (seed 0): 0x{:x} ({})",
+            result_empty, result_empty
+        );
+
+        // Verify that the 64-bit result matches the lower 64 bits of 128-bit variant
+        let result_128 = murmurhash3_128(data, 0);
+        let result_128_lower64 = result_128 as u64;
+        assert_eq!(
+            result, result_128_lower64,
+            "64-bit result should match lower 64 bits of 128-bit result"
         );
     }
 

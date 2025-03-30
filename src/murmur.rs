@@ -10,9 +10,16 @@ const C2_128: u32 = 0xab0e9789;
 const C3_128: u32 = 0x38b34ae5;
 const C4_128: u32 = 0xa1e38b93;
 
-// Finalization constants
-const FMIX_32_1: u32 = 0x85ebca6b;
-const FMIX_32_2: u32 = 0xc2b2ae35;
+// Finalization mix - force all bits of a hash block to avalanche
+#[inline(always)]
+fn fmix32(mut h: u32) -> u32 {
+    h ^= h >> 16;
+    h = h.wrapping_mul(0x85ebca6b);
+    h ^= h >> 13;
+    h = h.wrapping_mul(0xc2b2ae35);
+    h ^= h >> 16;
+    h
+}
 
 // MurmurHash3 32-bit hasher
 #[derive(Debug, Copy, Clone)]
@@ -22,7 +29,7 @@ pub struct MurmurHasher32 {
 }
 
 impl MurmurHasher32 {
-    #[inline(always)]
+    #[inline]
     pub fn new(seed: u32) -> Self {
         Self {
             state: seed,
@@ -30,31 +37,31 @@ impl MurmurHasher32 {
         }
     }
 
-    #[inline(always)]
+    #[inline]
     pub fn finish_u32(&self) -> u32 {
         let mut h1 = self.state;
 
         // Finalization
         h1 ^= self.length as u32;
-        h1 = fmix32(h1);
+        h1 = h1 ^ (h1 >> 16);
+        h1 = h1.wrapping_mul(0x85ebca6b);
+        h1 = h1 ^ (h1 >> 13);
+        h1 = h1.wrapping_mul(0xc2b2ae35);
+        h1 = h1 ^ (h1 >> 16);
 
         h1
     }
 }
 
-// Helper function for 32-bit finalization mix
-#[inline(always)]
-fn fmix32(mut h: u32) -> u32 {
-    h ^= h >> 16;
-    h = h.wrapping_mul(FMIX_32_1);
-    h ^= h >> 13;
-    h = h.wrapping_mul(FMIX_32_2);
-    h ^= h >> 16;
-    h
+impl Default for MurmurHasher32 {
+    #[inline]
+    fn default() -> Self {
+        Self::new(0)
+    }
 }
 
-impl Default for MurmurHasher32 {
-    #[inline(always)]
+impl Default for MurmurHasher64 {
+    #[inline]
     fn default() -> Self {
         Self::new(0)
     }
@@ -126,12 +133,15 @@ impl Hasher for MurmurHasher32 {
             _ => {}
         }
 
-        // Save state
+        // Store state
         self.state = h1;
     }
 }
 
 // MurmurHash3 128-bit hasher
+// Note: MurmurHash3 128-bit cannot implement the standard Hasher trait directly
+// because it produces a 128-bit hash which cannot be fully represented by u64
+// returned by the finish() method required by std::hash::Hasher
 #[derive(Debug, Copy, Clone)]
 pub struct MurmurHasher128 {
     h1: u32,
@@ -139,6 +149,39 @@ pub struct MurmurHasher128 {
     h3: u32,
     h4: u32,
     length: usize,
+}
+
+// MurmurHash3 64-bit hasher
+// This uses the 128-bit implementation but only returns the lower 64 bits
+#[derive(Debug, Copy, Clone)]
+pub struct MurmurHasher64 {
+    inner: MurmurHasher128,
+}
+
+impl MurmurHasher64 {
+    #[inline]
+    pub fn new(seed: u32) -> Self {
+        Self {
+            inner: MurmurHasher128::new(seed),
+        }
+    }
+
+    #[inline]
+    pub fn finish_u64(&self) -> u64 {
+        self.inner.finish_u64()
+    }
+}
+
+impl Hasher for MurmurHasher64 {
+    #[inline]
+    fn write(&mut self, data: &[u8]) {
+        self.inner.write(data);
+    }
+
+    #[inline]
+    fn finish(&self) -> u64 {
+        self.finish_u64()
+    }
 }
 
 impl MurmurHasher128 {
@@ -180,6 +223,12 @@ impl MurmurHasher128 {
 
         // Combine the four 32-bit values into one 128-bit value
         ((h4 as u128) << 96) | ((h3 as u128) << 64) | ((h2 as u128) << 32) | (h1 as u128)
+    }
+
+    #[inline]
+    pub fn finish_u64(&self) -> u64 {
+        // For 64-bit hash, just take the lower 64 bits of the 128-bit result
+        self.finish_u128() as u64
     }
 
     #[inline(always)]
@@ -340,69 +389,7 @@ impl MurmurHasher128 {
                 k2 = k2.wrapping_mul(C3_128);
                 *h2 ^= k2;
             }
-            9..=12 => {
-                let mut k1: u32 = 0;
-                let mut k2: u32 = 0;
-                let mut k3: u32 = 0;
-
-                // Process bytes for k1
-                if !tail.is_empty() {
-                    k1 ^= tail[0] as u32;
-                }
-                if tail.len() >= 2 {
-                    k1 ^= (tail[1] as u32) << 8;
-                }
-                if tail.len() >= 3 {
-                    k1 ^= (tail[2] as u32) << 16;
-                }
-                if tail.len() >= 4 {
-                    k1 ^= (tail[3] as u32) << 24;
-                }
-
-                k1 = k1.wrapping_mul(C1_128);
-                k1 = k1.rotate_left(15);
-                k1 = k1.wrapping_mul(C2_128);
-                *h1 ^= k1;
-
-                // Process bytes for k2
-                if tail.len() >= 5 {
-                    k2 ^= tail[4] as u32;
-                }
-                if tail.len() >= 6 {
-                    k2 ^= (tail[5] as u32) << 8;
-                }
-                if tail.len() >= 7 {
-                    k2 ^= (tail[6] as u32) << 16;
-                }
-                if tail.len() >= 8 {
-                    k2 ^= (tail[7] as u32) << 24;
-                }
-
-                k2 = k2.wrapping_mul(C2_128);
-                k2 = k2.rotate_left(16);
-                k2 = k2.wrapping_mul(C3_128);
-                *h2 ^= k2;
-
-                // Process bytes for k3
-                if tail.len() >= 9 {
-                    k3 ^= tail[8] as u32;
-                }
-                if tail.len() >= 10 {
-                    k3 ^= (tail[9] as u32) << 8;
-                }
-                if tail.len() >= 11 {
-                    k3 ^= (tail[10] as u32) << 16;
-                }
-                if tail.len() >= 12 {
-                    k3 ^= (tail[11] as u32) << 24;
-                }
-
-                k3 = k3.wrapping_mul(C3_128);
-                k3 = k3.rotate_left(17);
-                k3 = k3.wrapping_mul(C4_128);
-                *h3 ^= k3;
-            }
-            13..=15 => {
+            9..=15 => {
                 let mut k1: u32 = 0;
                 let mut k2: u32 = 0;
                 let mut k3: u32 = 0;
