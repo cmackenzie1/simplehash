@@ -39,3 +39,7 @@ harness = false
 [[bench]]
 name = "hashmap_key_length_benchmark"
 harness = false
+
+[[bench]]
+name = "murmur_benchmark"
+harness = false
