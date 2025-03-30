@@ -275,7 +275,7 @@ pub fn fnv1_64(data: &[u8]) -> u64 {
 pub fn fnv1a_64(data: &[u8]) -> u64 {
     let mut hasher = fnv::Fnv1aHasher64::new();
     hasher.write(data);
-    hasher.finish()
+    hasher.finish_raw()
 }
 
 /// Computes the MurmurHash3 32-bit hash of the provided data.
