@@ -1,13 +1,13 @@
 [package]
 name = "simplehash"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2024"
 authors = ["Cole Mackenzie <colemackenzie1@gmail.com>"]
-description = "A simple, fast Rust library implementing common non-cryptographic hash functions"
+description = "A simple, fast Rust library implementing common non-cryptographic hash functions: FNV, MurmurHash3, CityHash, and Rendezvous hashing"
 repository = "https://github.com/cmackenzie1/simplehash"
 license = "MIT"
-keywords = ["murmurhash", "fnv", "fnv1a", "murmurhash3", "hash"]
-categories = ["algorithms"]
+keywords = ["murmurhash", "fnv", "cityhash", "rendezvous", "hash"]
+categories = ["algorithms", "data-structures"]
 readme = "README.md"
 
 [lib]
