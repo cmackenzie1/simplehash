@@ -43,3 +43,7 @@ harness = false
 [[bench]]
 name = "murmur_benchmark"
 harness = false
+
+[[bench]]
+name = "rendezvous_benchmark"
+harness = false

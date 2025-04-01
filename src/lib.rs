@@ -8,6 +8,7 @@
 //! - FNV-1 (32-bit and 64-bit variants)
 //! - FNV-1a (32-bit and 64-bit variants)
 //! - MurmurHash3 (32-bit, 64-bit, and 128-bit variants)
+//! - Rendezvous hashing (Highest Random Weight hashing)
 //!
 //! Non-cryptographic hash functions are designed for fast computation and good distribution
 //! properties, making them suitable for hash tables, checksums, and other general-purpose
@@ -42,6 +43,42 @@
 //! println!("MurmurHash3-128: 0x{:x}", murmur3_128_hash);
 //! ```
 //!
+//! ## Rendezvous Hashing Example
+//!
+//! ```rust
+//! use simplehash::rendezvous::RendezvousHasher;
+//! use std::collections::hash_map::RandomState;
+//! use std::hash::BuildHasherDefault;
+//! use simplehash::fnv::Fnv1aHasher64;
+//!
+//! // Create a RendezvousHasher with the standard hasher
+//! let std_hasher = RendezvousHasher::<_, RandomState>::new(RandomState::new());
+//!
+//! // Create a RendezvousHasher with FNV-1a 64-bit hasher
+//! let fnv_hasher = RendezvousHasher::<_, BuildHasherDefault<Fnv1aHasher64>>::new(
+//!     BuildHasherDefault::<Fnv1aHasher64>::default()
+//! );
+//!
+//! // Define some nodes (servers, cache instances, etc.)
+//! let nodes = vec!["server1", "server2", "server3", "server4", "server5"];
+//!
+//! // Select the preferred node for a key
+//! let key = "user_12345";
+//! let selected_node = fnv_hasher.select(&key, &nodes).unwrap();
+//! println!("Key '{}' is assigned to node '{}'", key, selected_node);
+//!
+//! // Get the index of the selected node
+//! let selected_idx = fnv_hasher.select_index(&key, &nodes).unwrap();
+//! println!("Index of selected node: {}", selected_idx);
+//!
+//! // Get all nodes ranked by preference for this key
+//! let ranked_nodes = fnv_hasher.rank(&key, &nodes);
+//! println!("Nodes ranked by preference for key '{}':", key);
+//! for (i, node) in ranked_nodes.iter().enumerate() {
+//!     println!("  {}. {}", i+1, node);
+//! }
+//! ```
+//!
 //! ## Choosing a Hash Function
 //!
 //! - **FNV-1a**: Good general-purpose hash function. Simple to implement with reasonable
@@ -50,6 +87,12 @@
 //!
 //! - **MurmurHash3**: Offers excellent distribution properties and performance, especially
 //!   for larger inputs. The 128-bit variant provides better collision resistance.
+//!
+//! - **Rendezvous Hashing**: Not a raw hash function but rather a consistent hashing algorithm
+//!   that uses an underlying hash function. It's designed for distributed systems where keys
+//!   need to be consistently mapped to servers, with minimal redistribution when servers are
+//!   added or removed. This library's implementation works with any hasher implementing the
+//!   `std::hash::Hasher` trait.
 //!
 //! ## Using with HashMap and HashSet
 //!
@@ -138,10 +181,12 @@ use std::hash::Hasher;
 
 pub mod fnv;
 pub mod murmur;
+pub mod rendezvous;
 
 // Re-export for users to use directly
 pub use fnv::*;
 pub use murmur::*;
+pub use rendezvous::*;
 
 /// Computes the FNV-1 hash (32-bit) of the provided data.
 ///
