@@ -2,8 +2,11 @@
 ///
 /// This is a command-line interface for the SimpleHash library, allowing quick calculation
 /// of various non-cryptographic hash functions from the terminal.
+use simplehash::fnv::Fnv1aHasher64;
+use simplehash::rendezvous::RendezvousHasher;
 use simplehash::{fnv1_32, fnv1_64, fnv1a_32, fnv1a_64, murmurhash3_32, murmurhash3_128};
 use std::env;
+use std::hash::BuildHasherDefault;
 use std::time::Instant;
 
 /// Main entry point for the CLI application.
@@ -58,4 +61,47 @@ fn main() {
     println!("MurmurHash3-128: 0x{:032x}", murmur3_128_result);
     println!();
     println!("Computed all hashes in {:?}", elapsed);
+
+    // Demonstrate rendezvous hashing
+    println!("\n=== Rendezvous Hashing Example ===");
+
+    // Create a hasher that uses FNV-1a 64-bit
+    let hasher =
+        RendezvousHasher::<_, BuildHasherDefault<Fnv1aHasher64>>::new(BuildHasherDefault::<
+            Fnv1aHasher64,
+        >::default());
+
+    // Define some nodes (servers, cache instances, etc.)
+    let nodes = vec![
+        "server-us-east",
+        "server-us-west",
+        "server-eu-1",
+        "server-ap-1",
+        "server-sa-1",
+    ];
+
+    // Select the preferred node for the input key
+    if let Some(selected_node) = hasher.select(&input, &nodes) {
+        println!("Key '{}' is assigned to node: {}", input, selected_node);
+
+        // Show full ranking
+        println!("\nAll nodes ranked for key '{}':", input);
+        let ranked = hasher.rank(&input, &nodes);
+        for (i, node) in ranked.iter().enumerate() {
+            println!("  {}. {}", i + 1, node);
+        }
+
+        // Show what happens when a node is removed
+        let reduced_nodes = vec![
+            "server-us-east",
+            "server-us-west",
+            "server-eu-1",
+            "server-sa-1",
+        ];
+        let new_selected = hasher.select(&input, &reduced_nodes).unwrap();
+        println!(
+            "\nAfter removing 'server-ap-1', key is now assigned to: {}",
+            new_selected
+        );
+    }
 }

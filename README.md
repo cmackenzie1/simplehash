@@ -11,9 +11,10 @@ A simple Rust implementation of common non-cryptographic hash functions that are
 
 - FNV-1 (32-bit and 64-bit)
 - FNV-1a (32-bit and 64-bit)
-- MurmurHash3 (32-bit and 128-bit)
+- MurmurHash3 (32-bit, 64-bit, and 128-bit)
+- Rendezvous hashing (HRW - Highest Random Weight) algorithm
 
-These hash functions (except for MurmurHash3 128-bit) implement the `std::hash::Hasher` trait, making them usable with `HashMap` and `HashSet` as faster alternatives to the default SipHash.
+These hash functions (except for MurmurHash3 128-bit) implement the `std::hash::Hasher` trait, making them usable with `HashMap` and `HashSet` as faster alternatives to the default SipHash. The Rendezvous hashing implementation works with any hasher implementing the `std::hash::Hasher` trait.
 
 ## Usage
 
@@ -80,16 +81,57 @@ let mut murmur_map: HashMap<String, u32, MurmurHash3BuildHasher> =
 murmur_map.insert("key".to_string(), 42);
 ```
 
+### Using Rendezvous Hashing
+
+Rendezvous hashing (also known as Highest Random Weight or HRW hashing) provides a way to consistently distribute data across a changing set of servers or nodes. This implementation is particularly useful for distributed systems that need minimal redistribution when nodes are added or removed.
+
+```rust
+use simplehash::rendezvous::RendezvousHasher;
+use std::collections::hash_map::RandomState;
+use std::hash::BuildHasherDefault;
+use simplehash::fnv::Fnv1aHasher64;
+
+// Create a RendezvousHasher with the standard hasher
+let std_hasher = RendezvousHasher::<_, RandomState>::new(RandomState::new());
+
+// Create a RendezvousHasher with FNV-1a 64-bit hasher (for better performance)
+let fnv_hasher = RendezvousHasher::<_, BuildHasherDefault<Fnv1aHasher64>>::new(
+    BuildHasherDefault::<Fnv1aHasher64>::default()
+);
+
+// Define a list of servers or nodes
+let nodes = vec!["server1", "server2", "server3", "server4", "server5"];
+
+// Find the preferred node for a key
+let key = "user_profile_12345";
+let selected_node = fnv_hasher.select(&key, &nodes).unwrap();
+println!("Key '{}' is assigned to node: {}", key, selected_node);
+
+// Get all nodes ranked by preference for this key
+let ranked_nodes = fnv_hasher.rank(&key, &nodes);
+println!("Nodes ranked by preference for key '{}':", key);
+for (i, node) in ranked_nodes.iter().enumerate() {
+    println!("  {}. {}", i+1, node);
+}
+
+// The beauty of rendezvous hashing is that when a node is removed,
+// only keys that were assigned to that specific node are redistributed
+let reduced_nodes = vec!["server1", "server2", "server4", "server5"]; // server3 removed
+let new_node = fnv_hasher.select(&key, &reduced_nodes).unwrap();
+```
+
 ### When to Use Alternative Hashers
 
 - **For performance-critical code**: When dealing with a large number of hash operations or collections with many elements
 - **For small keys**: FNV performs exceptionally well with small keys, such as integers or short strings
 - **For medium to large inputs**: MurmurHash3 offers better performance for larger inputs
 - **For internal/trusted data only**: These hash functions lack the DoS protection of SipHash (Rust's default)
+- **For distributed systems**: Rendezvous hashing is ideal for distributing data across multiple servers or nodes with minimal redistribution when the node set changes
 
 Based on benchmarks, these hashers can provide significant performance improvements:
 - FNV-1a is generally 1.5-2x faster than SipHash for small keys
 - MurmurHash3 shows better performance for larger keys and provides better collision resistance
+- Rendezvous hashing with FNV-1a or MurmurHash3 provides excellent distribution properties while maintaining consistency when nodes are added or removed
 
 ## Command Line Usage
 
@@ -141,16 +183,20 @@ cargo bench --bench hash_benchmark
 
 # Run HashMap/HashSet performance benchmarks
 cargo bench --bench hashmap_benchmark
+
+# Run Rendezvous hashing benchmarks
+cargo bench --bench rendezvous_benchmark
 ```
 
 The benchmarks compare:
 - FNV hashing implementations (FNV-1 and FNV-1a, 32-bit and 64-bit variants)
-- MurmurHash3 implementations (32-bit and 128-bit)
+- MurmurHash3 implementations (32-bit, 64-bit, and 128-bit)
 - Performance across various input sizes
 - Different input patterns (zeros, ones, alternating, incremental)
 - Realistic data inputs (strings, URLs, JSON, UUIDs)
 - HashMap and HashSet performance with different hashers (SipHash vs FNV vs MurmurHash3)
 - Collision resistance evaluation with similar keys
+- Rendezvous hashing performance with different underlying hash functions and node counts
 
 ## License
 
