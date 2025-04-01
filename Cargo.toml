@@ -47,3 +47,7 @@ harness = false
 [[bench]]
 name = "rendezvous_benchmark"
 harness = false
+
+[[bench]]
+name = "city_benchmark"
+harness = false

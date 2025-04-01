@@ -8,6 +8,7 @@
 //! - FNV-1 (32-bit and 64-bit variants)
 //! - FNV-1a (32-bit and 64-bit variants)
 //! - MurmurHash3 (32-bit, 64-bit, and 128-bit variants)
+//! - CityHash (64-bit variant)
 //! - Rendezvous hashing (Highest Random Weight hashing)
 //!
 //! Non-cryptographic hash functions are designed for fast computation and good distribution
@@ -16,6 +17,25 @@
 //!
 //! All hash functions in this library implement the `std::hash::Hasher` trait, making them
 //! compatible with Rust's standard collections like `HashMap` and `HashSet`.
+//!
+//! The CityHash implementation is based on the algorithm developed by Google and available at
+//! https://github.com/google/cityhash. CityHash was created by Geoff Pike and Jyrki Alakuijala
+//! and is licensed under the MIT License.
+//!
+//! ### When to use each hash function:
+//!
+//! - **FNV**: Good for small inputs (< 32 bytes), particularly for integer keys. Simple implementation.
+//! - **MurmurHash3**: Excellent general-purpose hash with good distribution across all input sizes.
+//! - **CityHash**: Optimized for short strings (< 64 bytes) with excellent performance on modern processors.
+//! - **Rendezvous**: For distributed systems when keys need to be consistently mapped to nodes.
+//!
+//! ### When NOT to use these hash functions:
+//!
+//! None of the hash functions in this library should be used for:
+//! - Cryptographic purposes
+//! - Password hashing
+//! - Security-sensitive applications
+//! - Protection against malicious inputs that could cause collisions
 //!
 //! ## Example Usage
 //!
@@ -87,6 +107,10 @@
 //!
 //! - **MurmurHash3**: Offers excellent distribution properties and performance, especially
 //!   for larger inputs. The 128-bit variant provides better collision resistance.
+//!
+//! - **CityHash**: Developed by Google specifically for string hashing, with excellent
+//!   performance for short to medium-length strings. It's a good choice for hash tables
+//!   where the keys are typically strings.
 //!
 //! - **Rendezvous Hashing**: Not a raw hash function but rather a consistent hashing algorithm
 //!   that uses an underlying hash function. It's designed for distributed systems where keys
@@ -179,11 +203,13 @@
 
 use std::hash::Hasher;
 
+pub mod city;
 pub mod fnv;
 pub mod murmur;
 pub mod rendezvous;
 
 // Re-export for users to use directly
+pub use city::*;
 pub use fnv::*;
 pub use murmur::*;
 pub use rendezvous::*;
