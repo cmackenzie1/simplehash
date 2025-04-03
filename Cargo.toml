@@ -23,7 +23,8 @@ path = "src/main.rs"
 serde_json = "1.0"
 criterion = "0.5"
 rand = "0.8"
-
+cityhash-sys = { path = "./cityhash-sys" } # Only used for testing to verify our Rust implementation
+ 
 [[bench]]
 name = "fnv_benchmark"
 harness = false
