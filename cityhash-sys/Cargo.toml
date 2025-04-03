@@ -1,0 +1,13 @@
+[package]
+name = "cityhash-sys"
+version = "0.1.0"
+edition = "2024"
+links = "cityhash"
+build = "build.rs"
+
+[dependencies]
+libc = "0.2"
+
+[build-dependencies]
+cc = "1.2"
+bindgen = "0.71"

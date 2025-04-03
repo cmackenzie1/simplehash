@@ -5,7 +5,7 @@
 use simplehash::fnv::Fnv1aHasher64;
 use simplehash::rendezvous::RendezvousHasher;
 use simplehash::{
-    city_hash_64, fnv1_32, fnv1_64, fnv1a_32, fnv1a_64, murmurhash3_32, murmurhash3_128,
+    city_hash64, fnv1_32, fnv1_64, fnv1a_32, fnv1a_64, murmurhash3_32, murmurhash3_128,
 };
 use std::env;
 use std::hash::BuildHasherDefault;
@@ -33,7 +33,7 @@ fn main() {
     let fnv1a_64_result = fnv1a_64(bytes);
     let murmur3_32_result = murmurhash3_32(bytes, 0);
     let murmur3_128_result = murmurhash3_128(bytes, 0);
-    let city_hash_result = city_hash_64(bytes);
+    let city_hash_result = city_hash64(bytes);
 
     let elapsed = now.elapsed();
 
