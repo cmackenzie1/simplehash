@@ -161,7 +161,10 @@ mod tests {
         // Verify that the cityhash module functions match the top-level functions
         assert_eq!(cityhash::hash32(data), city_hash_32(data));
         assert_eq!(cityhash::hash64(data), city_hash_64(data));
-        assert_eq!(cityhash::hash64_with_seed(data, 123), city_hash_64_with_seed(data, 123));
+        assert_eq!(
+            cityhash::hash64_with_seed(data, 123),
+            city_hash_64_with_seed(data, 123)
+        );
     }
 
     #[test]

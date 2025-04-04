@@ -52,3 +52,6 @@ harness = false
 [[bench]]
 name = "city_benchmark"
 harness = false
+
+[workspace]
+members = ["cityhash-sys", "farmhash-sys"]
