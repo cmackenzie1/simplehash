@@ -1,0 +1,19 @@
+[package]
+name = "farmhash-sys"
+version = "0.1.0"
+edition = "2024"
+links = "farmhash"
+description = "Rust FFI bindings for a minimal implementation of Google's FarmHash hashing algorithms"
+license = "MIT"
+authors = ["Cole Mackenzie <colemackenzie1@gmail.com>"]
+repository = "https://github.com/cmackenzie1/simplehash/farmhash-sys"
+keywords = ["hash", "farmhash", "bindings"]
+categories = ["api-bindings", "algorithms"]
+readme = "README.md"
+
+[dependencies]
+libc = "0.2"
+
+[build-dependencies]
+cc = "1.2"
+bindgen = "0.71"

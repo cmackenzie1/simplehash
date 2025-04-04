@@ -28,12 +28,14 @@ pub fn city_hash_32(bytes: &[u8]) -> u32 {
 
 use std::hash::Hasher;
 
+/// Hasher implementation for CityHash
 pub struct CityHashHasher {
     buffer: Vec<u8>,
     seed: Option<u64>,
 }
 
 impl CityHashHasher {
+    /// Create a new CityHashHasher with no seed
     pub fn new() -> Self {
         Self {
             buffer: Vec::new(),
@@ -41,6 +43,7 @@ impl CityHashHasher {
         }
     }
 
+    /// Create a new CityHashHasher with the specified seed
     pub fn with_seed(seed: u64) -> Self {
         Self {
             buffer: Vec::new(),
@@ -75,6 +78,31 @@ impl Hasher for CityHashHasher {
 /// Default hasher for CityHash
 type CityHashHasherDefault = std::hash::BuildHasherDefault<CityHashHasher>;
 
+// Provide a module for compatibility with other hash implementations
+pub mod cityhash {
+    use super::*;
+
+    /// Hash function for a byte array, returning a 32-bit hash
+    pub fn hash32(bytes: &[u8]) -> u32 {
+        city_hash_32(bytes)
+    }
+
+    /// Hash function for a byte array, returning a 64-bit hash
+    pub fn hash64(bytes: &[u8]) -> u64 {
+        city_hash_64(bytes)
+    }
+
+    /// Hash function for a byte array with a 64-bit seed, returning a 64-bit hash
+    pub fn hash64_with_seed(bytes: &[u8], seed: u64) -> u64 {
+        city_hash_64_with_seed(bytes, seed)
+    }
+
+    /// Hash function for a byte array with two 64-bit seeds, returning a 64-bit hash
+    pub fn hash64_with_seeds(bytes: &[u8], seed0: u64, seed1: u64) -> u64 {
+        city_hash_64_with_seeds(bytes, seed0, seed1)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -105,11 +133,55 @@ mod tests {
     }
 
     #[test]
+    fn test_city_hash_64_with_seeds() {
+        let data = b"hello world";
+        let seed0 = 123456789;
+        let seed1 = 987654321;
+        let hash = city_hash_64_with_seeds(data, seed0, seed1);
+
+        // Test consistency
+        assert_eq!(hash, city_hash_64_with_seeds(data, seed0, seed1));
+
+        // Test that different seeds produce different hashes
+        assert_ne!(hash, city_hash_64_with_seeds(data, seed0 + 1, seed1));
+    }
+
+    #[test]
     fn test_city_hash_32() {
         let data = b"hello world";
         let hash = city_hash_32(data);
 
         // Test consistency
         assert_eq!(hash, city_hash_32(data));
+    }
+
+    #[test]
+    fn test_cityhash_module_compatibility() {
+        let data = b"hello world";
+        // Verify that the cityhash module functions match the top-level functions
+        assert_eq!(cityhash::hash32(data), city_hash_32(data));
+        assert_eq!(cityhash::hash64(data), city_hash_64(data));
+        assert_eq!(cityhash::hash64_with_seed(data, 123), city_hash_64_with_seed(data, 123));
+    }
+
+    #[test]
+    fn test_city_hash_hasher() {
+        let data = b"hello world";
+        let mut hasher = CityHashHasher::new();
+        hasher.write(data);
+        let hash = hasher.finish();
+        // Test consistency with direct call
+        assert_eq!(hash, city_hash_64(data));
+    }
+
+    #[test]
+    fn test_city_hash_hasher_with_seed() {
+        let data = b"hello world";
+        let seed = 123456789;
+        let mut hasher = CityHashHasher::with_seed(seed);
+        hasher.write(data);
+        let hash = hasher.finish();
+        // Test consistency with direct call
+        assert_eq!(hash, city_hash_64_with_seed(data, seed));
     }
 }
