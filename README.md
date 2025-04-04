@@ -7,6 +7,19 @@
 
 A simple Rust implementation of common non-cryptographic hash functions that are compatible with Rust's standard collections.
 
+## Installation
+
+This repository contains submodules. To clone the repository with all its submodules:
+
+```bash
+# Clone with submodules
+git clone --recurse-submodules https://github.com/cmackenzie1/simplehash.git
+
+# Or, if you've already cloned the repository without submodules:
+git submodule init
+git submodule update
+```
+
 ## Currently Implemented
 
 - FNV-1 (32-bit and 64-bit)

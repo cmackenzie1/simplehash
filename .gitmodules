@@ -1,3 +1,4 @@
 [submodule "cityhash-sys/cityhash"]
 	path = cityhash-sys/cityhash
 	url = git@github.com:google/cityhash.git
+	update = checkout
