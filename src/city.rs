@@ -682,3 +682,50 @@ pub fn city_hash128(s: &[u8]) -> u128 {
         city_hash128_with_seed(s, (K0 as u128) ^ ((K1 as u128) << 64))
     }
 }
+
+pub struct CityHasher64 {
+    buffer: Vec<u8>,
+    seed: u64,
+}
+
+impl Default for CityHasher64 {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl CityHasher64 {
+    pub fn new() -> Self {
+        CityHasher64 {
+            buffer: Vec::new(),
+            seed: 0,
+        }
+    }
+
+    pub fn with_seed(seed: u64) -> Self {
+        CityHasher64 {
+            buffer: Vec::new(),
+            seed,
+        }
+    }
+}
+
+impl std::hash::Hasher for CityHasher64 {
+    fn write(&mut self, bytes: &[u8]) {
+        self.buffer.extend_from_slice(bytes);
+    }
+
+    fn finish(&self) -> u64 {
+        city_hash64(&self.buffer)
+    }
+}
+
+impl std::hash::BuildHasher for CityHasher64 {
+    type Hasher = CityHasher64;
+
+    fn build_hasher(&self) -> Self::Hasher {
+        CityHasher64::new()
+    }
+}
+
+type CityHashHasherDefault = std::hash::BuildHasherDefault<CityHasher64>;

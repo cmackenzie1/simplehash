@@ -1,7 +1,7 @@
 use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
 use simplehash::fnv::Fnv1aHasher64;
 use simplehash::murmur::MurmurHasher64;
-use simplehash::rendezvous::{RendezvousHasher, with_default_hasher};
+use simplehash::rendezvous::RendezvousHasher;
 use std::collections::hash_map::RandomState;
 use std::hash::BuildHasherDefault;
 

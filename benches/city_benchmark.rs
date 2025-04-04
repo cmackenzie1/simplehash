@@ -1,7 +1,7 @@
 use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
-use simplehash::{city_hash_64, fnv1a_64, murmurhash3_64};
+use simplehash::{city_hash64, fnv1a_64, murmurhash3_64};
 
 fn bench_city_hash(c: &mut Criterion) {
     let mut group = c.benchmark_group("city_hash_comparison");
@@ -18,23 +18,23 @@ fn bench_city_hash(c: &mut Criterion) {
         // Create string-like data (mostly ASCII)
         let string_data: Vec<u8> = (0..*size)
             .map(|_| {
-                let chr = rng.gen_range(32..127) as u8; // Printable ASCII
-                chr
+                // Printable ASCII
+                rng.gen_range(32..127) as u8
             })
             .collect();
 
         // Benchmark CityHash
         group.bench_with_input(
-            BenchmarkId::new("city_hash_64_random", size),
+            BenchmarkId::new("city_hash64_random", size),
             &data,
-            |b, data| b.iter(|| city_hash_64(black_box(data))),
+            |b, data| b.iter(|| city_hash64(black_box(data))),
         );
 
         // Benchmark CityHash with string-like data
         group.bench_with_input(
-            BenchmarkId::new("city_hash_64_string", size),
+            BenchmarkId::new("city_hash64_string", size),
             &string_data,
-            |b, data| b.iter(|| city_hash_64(black_box(data))),
+            |b, data| b.iter(|| city_hash64(black_box(data))),
         );
 
         // Benchmark FNV-1a for comparison
@@ -84,8 +84,8 @@ fn bench_city_hasher(c: &mut Criterion) {
         // Create string-like data (mostly ASCII)
         let string_data: Vec<u8> = (0..*size)
             .map(|_| {
-                let chr = rng.gen_range(32..127) as u8; // Printable ASCII
-                chr
+                // Printable ASCII
+                rng.gen_range(32..127) as u8
             })
             .collect();
 
@@ -104,9 +104,9 @@ fn bench_city_hasher(c: &mut Criterion) {
 
         // Benchmark using the direct function for comparison
         group.bench_with_input(
-            BenchmarkId::new("city_hash_64_string", size),
+            BenchmarkId::new("city_hash64_string", size),
             &string_data,
-            |b, data| b.iter(|| city_hash_64(black_box(data))),
+            |b, data| b.iter(|| city_hash64(black_box(data))),
         );
     }
 
@@ -133,8 +133,8 @@ fn bench_string_key_patterns(c: &mut Criterion) {
         let data = key.as_bytes();
 
         // CityHash
-        group.bench_with_input(BenchmarkId::new("city_hash_64", key), &data, |b, data| {
-            b.iter(|| city_hash_64(black_box(data)))
+        group.bench_with_input(BenchmarkId::new("city_hash64", key), &data, |b, data| {
+            b.iter(|| city_hash64(black_box(data)))
         });
 
         // FNV-1a
