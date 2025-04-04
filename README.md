@@ -4,35 +4,35 @@
 [![Crates.io Version](https://img.shields.io/crates/v/simplehash)](https://crates.io/crates/simplehash)
 [![docs.rs](https://img.shields.io/docsrs/simplehash)](https://docs.rs/simplehash/latest/simplehash/)
 
+A simple Rust implementation of common non-cryptographic hash functions and consistent hashing algorithms, compatible with Rust's standard collections.
 
-A simple Rust implementation of common non-cryptographic hash functions that are compatible with Rust's standard collections.
+## Supported Hash Algorithms
+
+- **FNV Hash Family**
+  - FNV-1 (32-bit and 64-bit)
+  - FNV-1a (32-bit and 64-bit)
+- **MurmurHash3**
+  - 32-bit implementation
+  - 64-bit implementation
+  - 128-bit implementation
+- **CityHash**
+  - 64-bit implementation
+- **Rendezvous Hashing**
+  - Consistent distribution algorithm (HRW - Highest Random Weight)
+  - Works with any hasher implementing `std::hash::Hasher`
+
+These hash functions (except for MurmurHash3 128-bit) implement the `std::hash::Hasher` trait, making them usable with `HashMap` and `HashSet` as faster alternatives to the default SipHash.
 
 ## Installation
 
-This repository contains submodules. To clone the repository with all its submodules:
-
 ```bash
-# Clone with submodules
-git clone --recurse-submodules https://github.com/cmackenzie1/simplehash.git
-
-# Or, if you've already cloned the repository without submodules:
-git submodule init
-git submodule update
+# Add to your Cargo.toml
+cargo add simplehash
 ```
-
-## Currently Implemented
-
-- FNV-1 (32-bit and 64-bit)
-- FNV-1a (32-bit and 64-bit)
-- MurmurHash3 (32-bit, 64-bit, and 128-bit)
-- CityHash (64-bit)
-- Rendezvous hashing (HRW - Highest Random Weight) algorithm
-
-These hash functions (except for MurmurHash3 128-bit) implement the `std::hash::Hasher` trait, making them usable with `HashMap` and `HashSet` as faster alternatives to the default SipHash. The Rendezvous hashing implementation works with any hasher implementing the `std::hash::Hasher` trait.
 
 ## Usage
 
-### Basic Usage
+### Basic Hash Functions
 
 ```rust
 use simplehash::{fnv1_32, fnv1a_32, fnv1_64, fnv1a_64, murmurhash3_32, murmurhash3_128, city_hash_64};
@@ -40,7 +40,7 @@ use simplehash::{fnv1_32, fnv1a_32, fnv1_64, fnv1a_64, murmurhash3_32, murmurhas
 fn main() {
     let input = "hello world";
     let bytes = input.as_bytes();
-    
+
     let fnv1_32_hash = fnv1_32(bytes);
     let fnv1a_32_hash = fnv1a_32(bytes);
     let fnv1_64_hash = fnv1_64(bytes);
@@ -48,7 +48,7 @@ fn main() {
     let murmur3_32_hash = murmurhash3_32(bytes, 0);
     let murmur3_128_hash = murmurhash3_128(bytes, 0);
     let city_hash = city_hash_64(bytes);
-    
+
     println!("FNV1-32: 0x{:x}", fnv1_32_hash);
     println!("FNV1a-32: 0x{:x}", fnv1a_32_hash);
     println!("FNV1-64: 0x{:x}", fnv1_64_hash);
@@ -70,12 +70,12 @@ use std::collections::{HashMap, HashSet};
 use std::hash::{BuildHasher, BuildHasherDefault};
 
 // Using FNV-1a with HashMap
-let mut map: HashMap<String, u32, BuildHasherDefault<Fnv1aHasher64>> = 
+let mut map: HashMap<String, u32, BuildHasherDefault<Fnv1aHasher64>> =
     HashMap::with_hasher(BuildHasherDefault::<Fnv1aHasher64>::default());
 map.insert("key".to_string(), 42);
 
 // Using FNV-1a with HashSet
-let mut set: HashSet<String, BuildHasherDefault<Fnv1aHasher64>> = 
+let mut set: HashSet<String, BuildHasherDefault<Fnv1aHasher64>> =
     HashSet::with_hasher(BuildHasherDefault::<Fnv1aHasher64>::default());
 set.insert("value".to_string());
 
@@ -92,14 +92,14 @@ impl BuildHasher for MurmurHash3BuildHasher {
 }
 
 // Using MurmurHash3 with HashMap
-let mut murmur_map: HashMap<String, u32, MurmurHash3BuildHasher> = 
+let mut murmur_map: HashMap<String, u32, MurmurHash3BuildHasher> =
     HashMap::with_hasher(MurmurHash3BuildHasher);
 murmur_map.insert("key".to_string(), 42);
 ```
 
-### Using Rendezvous Hashing
+### Rendezvous Hashing for Consistent Distribution
 
-Rendezvous hashing (also known as Highest Random Weight or HRW hashing) provides a way to consistently distribute data across a changing set of servers or nodes. This implementation is particularly useful for distributed systems that need minimal redistribution when nodes are added or removed.
+Rendezvous hashing (also known as Highest Random Weight or HRW hashing) provides a way to consistently distribute data across a changing set of servers or nodes, with minimal redistribution when nodes are added or removed.
 
 ```rust
 use simplehash::rendezvous::RendezvousHasher;
@@ -130,26 +130,28 @@ for (i, node) in ranked_nodes.iter().enumerate() {
     println!("  {}. {}", i+1, node);
 }
 
-// The beauty of rendezvous hashing is that when a node is removed,
-// only keys that were assigned to that specific node are redistributed
+// When a node is removed, only keys assigned to that node are redistributed
 let reduced_nodes = vec!["server1", "server2", "server4", "server5"]; // server3 removed
 let new_node = fnv_hasher.select(&key, &reduced_nodes).unwrap();
 ```
 
-### When to Use Alternative Hashers
+## Algorithm Selection Guide
 
-- **For performance-critical code**: When dealing with a large number of hash operations or collections with many elements
-- **For small keys**: FNV performs exceptionally well with small keys, such as integers or short strings
-- **For medium to large inputs**: MurmurHash3 offers better performance for larger inputs
-- **For string keys**: CityHash was specifically designed by Google for string hashing and performs very well for string keys in hash tables (based on the [original implementation](https://github.com/google/cityhash) by Geoff Pike and Jyrki Alakuijala)
-- **For internal/trusted data only**: These hash functions lack the DoS protection of SipHash (Rust's default)
-- **For distributed systems**: Rendezvous hashing is ideal for distributing data across multiple servers or nodes with minimal redistribution when the node set changes
+Each hash function has specific strengths:
 
-Based on benchmarks, these hashers can provide significant performance improvements:
-- FNV-1a is generally 1.5-2x faster than SipHash for small keys
-- MurmurHash3 shows better performance for larger keys and provides better collision resistance
-- CityHash performs exceptionally well for string keys, often outperforming other algorithms for common string lengths
-- Rendezvous hashing with FNV-1a or MurmurHash3 provides excellent distribution properties while maintaining consistency when nodes are added or removed
+- **FNV Hash Family**: Fast for small inputs (short strings, integers). Excellent for hash tables with small keys.
+- **MurmurHash3**: Better performance and distribution for medium to large inputs.
+- **CityHash**: Designed specifically for string hashing by Google. Excellent performance for string keys in hash tables.
+- **Rendezvous Hashing**: Ideal for distributing data across multiple nodes with minimal redistribution when the node set changes.
+
+Performance comparisons:
+
+- FNV-1a is generally 1.5-2x faster than SipHash (Rust default) for small keys
+- MurmurHash3 shows better collision resistance and performance for larger keys
+- CityHash performs exceptionally well for string keys, often outperforming other algorithms
+- Rendezvous hashing with FNV-1a or MurmurHash3 provides excellent distribution properties
+
+**Note**: These non-cryptographic hash functions should only be used for trusted data as they lack the DoS protection of SipHash.
 
 ## Command Line Usage
 
@@ -187,7 +189,7 @@ cargo test test_against_mmh3_python
 
 ## Benchmarks
 
-SimpleHash includes benchmarks using the Criterion.rs library. To run the benchmarks:
+SimpleHash includes benchmarks using the Criterion.rs library:
 
 ```bash
 # Run all benchmarks
@@ -206,15 +208,7 @@ cargo bench --bench hashmap_benchmark
 cargo bench --bench rendezvous_benchmark
 ```
 
-The benchmarks compare:
-- FNV hashing implementations (FNV-1 and FNV-1a, 32-bit and 64-bit variants)
-- MurmurHash3 implementations (32-bit, 64-bit, and 128-bit)
-- Performance across various input sizes
-- Different input patterns (zeros, ones, alternating, incremental)
-- Realistic data inputs (strings, URLs, JSON, UUIDs)
-- HashMap and HashSet performance with different hashers (SipHash vs FNV vs MurmurHash3)
-- Collision resistance evaluation with similar keys
-- Rendezvous hashing performance with different underlying hash functions and node counts
+The benchmarks compare performance across various input types, sizes, and hash algorithms.
 
 ## License
 
