@@ -7,11 +7,11 @@ fn main() {
 
     build
         .cpp(true)
-        .file("cityhash/src/city.cc")
-        .include("cityhash/src")
+        .file("vendor/src/city.cc")
+        .include("vendor/src")
         .flag_if_supported("-std=c++11")
         // Include the directory where config.h is located
-        .include("cityhash/src")
+        .include("vendor/src")
         .warnings(false)
         .compile("cityhash");
 
@@ -21,7 +21,7 @@ fn main() {
         .clang_arg("-std=c++11")
         .clang_arg("-x")
         .clang_arg("c++")
-        .clang_arg("-I./cityhash/src")
+        .clang_arg("-I./vendor/src")
         .allowlist_function("CityHash64")
         .allowlist_function("CityHash64WithSeed")
         .allowlist_function("CityHash64WithSeeds")
@@ -54,7 +54,7 @@ fn main() {
         .expect("Couldn't write bindings!");
 
     println!("cargo:rerun-if-changed=wrapper.h");
-    println!("cargo:rerun-if-changed=cityhash/src/city.h");
-    println!("cargo:rerun-if-changed=cityhash/src/city.cc");
-    println!("cargo:rerun-if-changed=cityhash/src/config.h");
+    println!("cargo:rerun-if-changed=vendor/src/city.h");
+    println!("cargo:rerun-if-changed=vendor/src/city.cc");
+    println!("cargo:rerun-if-changed=vendor/src/config.h");
 }
