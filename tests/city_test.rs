@@ -119,22 +119,6 @@ fn test_city_hash_64_against_cpp() {
 }
 
 #[test]
-fn test_hasher_trait_against_cpp() {
-    // Skip this test when using the C++ implementation directly
-    // Both CityHasher64 and CityHashHasher now use the same C++ implementation,
-    // but they have different internal buffering mechanisms that can cause slight differences
-    // in incremental hashing.
-}
-
-#[test]
-fn test_incremental_hashing_against_cpp() {
-    // Skip this test when using the C++ implementation directly
-    // Both CityHasher64 and CityHashHasher now use the same C++ implementation,
-    // but they have different internal buffering mechanisms that can cause slight differences
-    // in incremental hashing.
-}
-
-#[test]
 fn test_city_hash_with_seed() {
     // Test both Rust and C++ implementations with seeds
     let data = b"hello world";
