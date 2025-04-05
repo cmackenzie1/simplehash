@@ -204,12 +204,14 @@
 use std::hash::Hasher;
 
 pub mod city;
+pub mod farm;
 pub mod fnv;
 pub mod murmur;
 pub mod rendezvous;
 
 // Re-export for users to use directly
 pub use city::*;
+pub use farm::*;
 pub use fnv::*;
 pub use murmur::*;
 pub use rendezvous::*;

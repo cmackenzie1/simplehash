@@ -20,12 +20,19 @@ fn main() {
         .clang_arg("-std=c++11")
         .clang_arg("-x")
         .clang_arg("c++")
+        // 32-bit hash functions
         .allowlist_function("farmhash_hash32")
         .allowlist_function("farmhash_hash32_with_seed")
+        .allowlist_function("farmhash_fingerprint32")
+        // 64-bit hash functions
         .allowlist_function("farmhash_hash64")
         .allowlist_function("farmhash_hash64_with_seed")
         .allowlist_function("farmhash_hash64_with_seeds")
+        .allowlist_function("farmhash_fingerprint64")
+        .allowlist_function("farmhash_fingerprint64_with_seed")
+        // 128-bit hash functions
         .allowlist_function("farmhash_fingerprint128")
+        .allowlist_function("farmhash_fingerprint128_with_seed")
         // Options for bindgen
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .generate_comments(false)
