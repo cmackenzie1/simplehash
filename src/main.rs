@@ -5,7 +5,7 @@
 use simplehash::fnv::Fnv1aHasher64;
 use simplehash::rendezvous::RendezvousHasher;
 use simplehash::{
-    city_hash64, fnv1_32, fnv1_64, fnv1a_32, fnv1a_64, murmurhash3_32, murmurhash3_128,
+    city_hash64, farm_hash64, fnv1_32, fnv1_64, fnv1a_32, fnv1a_64, murmurhash3_32, murmurhash3_128,
 };
 use std::env;
 use std::hash::BuildHasherDefault;
@@ -34,6 +34,7 @@ fn main() {
     let murmur3_32_result = murmurhash3_32(bytes, 0);
     let murmur3_128_result = murmurhash3_128(bytes, 0);
     let city_hash_result = city_hash64(bytes);
+    let farm_hash_result = farm_hash64(bytes);
 
     let elapsed = now.elapsed();
 
@@ -65,6 +66,10 @@ fn main() {
     println!(
         "CityHash-64:    0x{:016x} ({})",
         city_hash_result, city_hash_result
+    );
+    println!(
+        "FarmHash-64:    0x{:016x} ({})",
+        farm_hash_result, farm_hash_result
     );
     println!();
     println!("Computed all hashes in {:?}", elapsed);
