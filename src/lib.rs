@@ -28,6 +28,7 @@
 //! - **MurmurHash3**: Excellent general-purpose hash with good distribution across all input sizes.
 //! - **CityHash**: Optimized for short strings (< 64 bytes) with excellent performance on modern processors.
 //! - **Rendezvous**: For distributed systems when keys need to be consistently mapped to nodes.
+//!   Use `RendezvousHasher` for small-medium node sets, or `SkeletonRendezvousHasher` for large node sets (1000+).
 //!
 //! ### When NOT to use these hash functions:
 //!
@@ -99,6 +100,56 @@
 //! }
 //! ```
 //!
+//! ## Skeleton-Based Rendezvous Hashing Example
+//!
+//! For very large node sets, use the skeleton-based variant for O(log n) performance:
+//!
+//! ```rust
+//! use simplehash::rendezvous::SkeletonRendezvousHasher;
+//! use std::collections::hash_map::RandomState;
+//!
+//! // Create a skeleton hasher with cluster_size=4 and fanout=3
+//! let hasher = SkeletonRendezvousHasher::<_, RandomState>::new(
+//!     RandomState::new(),
+//!     4,  // cluster_size: nodes per leaf cluster
+//!     3,  // fanout: branching factor of virtual hierarchy
+//! );
+//!
+//! // Works with large node sets efficiently
+//! let nodes: Vec<String> = (0..1000).map(|i| format!("server{}", i)).collect();
+//!
+//! // Select the preferred node for a key
+//! let key = "user_session_12345";
+//! let selected_node = hasher.select(&key, &nodes).unwrap();
+//! println!("Key '{}' is assigned to node '{}'", key, selected_node);
+//! ```
+//!
+//! ## Weighted Rendezvous Hashing Example
+//!
+//! When nodes have different capacities, use weighted rendezvous hashing:
+//!
+//! ```rust
+//! use simplehash::rendezvous::{WeightedRendezvousHasher, WeightedNode};
+//! use std::collections::hash_map::RandomState;
+//!
+//! let hasher = WeightedRendezvousHasher::<_, RandomState>::new(RandomState::new());
+//!
+//! // Nodes with different weights (capacities)
+//! let nodes = vec![
+//!     WeightedNode::new("small_server", 100.0),   // ~17% of keys
+//!     WeightedNode::new("medium_server", 200.0),  // ~33% of keys
+//!     WeightedNode::new("large_server", 300.0),   // ~50% of keys
+//! ];
+//!
+//! // Selection probability is proportional to weight
+//! let selected = hasher.select(&"my_key", &nodes).unwrap();
+//! println!("Selected: {}", selected.value());
+//!
+//! // Get top k nodes for replication
+//! let replicas = hasher.select_top_k(&"important_data", &nodes, 2);
+//! println!("Primary: {}, Secondary: {}", replicas[0].value(), replicas[1].value());
+//! ```
+//!
 //! ## Choosing a Hash Function
 //!
 //! - **FNV-1a**: Good general-purpose hash function. Simple to implement with reasonable
@@ -116,7 +167,10 @@
 //!   that uses an underlying hash function. It's designed for distributed systems where keys
 //!   need to be consistently mapped to servers, with minimal redistribution when servers are
 //!   added or removed. This library's implementation works with any hasher implementing the
-//!   `std::hash::Hasher` trait.
+//!   `std::hash::Hasher` trait. Three variants are available:
+//!   - [`RendezvousHasher`]: Standard O(n) implementation with minimal disruption guarantees
+//!   - [`SkeletonRendezvousHasher`]: Hierarchical O(log n) implementation for very large node sets
+//!   - [`WeightedRendezvousHasher`]: Weighted selection where nodes have different capacities
 //!
 //! ## Using with HashMap and HashSet
 //!
@@ -514,7 +568,7 @@ pub fn murmurhash3_128(data: &[u8], seed: u32) -> u128 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use serde_json::{Value, from_str};
+    use serde_json::{from_str, Value};
     use std::fs::File;
     use std::io::Read;
 

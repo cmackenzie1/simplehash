@@ -55,11 +55,19 @@ fn is_big_endian() -> bool {
 }
 
 fn uint32_in_expected_order(x: u32) -> u32 {
-    if is_big_endian() { x.swap_bytes() } else { x }
+    if is_big_endian() {
+        x.swap_bytes()
+    } else {
+        x
+    }
 }
 
 fn uint64_in_expected_order(x: u64) -> u64 {
-    if is_big_endian() { x.swap_bytes() } else { x }
+    if is_big_endian() {
+        x.swap_bytes()
+    } else {
+        x
+    }
 }
 
 fn fetch64(p: &[u8]) -> u64 {
