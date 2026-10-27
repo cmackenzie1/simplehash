@@ -90,12 +90,7 @@ fn fmix(mut h: u32) -> u32 {
 }
 
 fn rotate32(val: u32, shift: i32) -> u32 {
-    // Avoid shifting by 32: doing so yields an undefined result.
-    if shift == 0 {
-        val
-    } else {
-        (val >> shift) | (val << (32 - shift))
-    }
+    val.rotate_right(shift as u32)
 }
 
 fn permute3(a: &mut u32, b: &mut u32, c: &mut u32) {
@@ -250,12 +245,7 @@ pub fn city_hash32(s: &[u8]) -> u32 {
 
 // Bitwise right rotate.
 fn rotate(val: u64, shift: i32) -> u64 {
-    // Avoid shifting by 64: doing so yields an undefined result.
-    if shift == 0 {
-        val
-    } else {
-        (val >> shift) | (val << (64 - shift))
-    }
+    val.rotate_right(shift as u32)
 }
 
 fn shift_mix(val: u64) -> u64 {

@@ -20,7 +20,7 @@ fn test_top_level_32bit_functions() {
 
     // Test farm_fingerprint_32
     let fingerprint32 = farmhash_sys::farm_fingerprint_32(input);
-    assert_ne!(hash32, fingerprint32); // Hash and fingerprint should be different
+    // Hash32 and Fingerprint32 coincide on platforms without SSE4.1/4.2
     assert_eq!(fingerprint32, farmhash_sys::farm_fingerprint_32(input)); // Should be deterministic
 }
 
@@ -84,8 +84,8 @@ fn test_farmhash_32bit_functions() {
     assert_ne!(hash32, hash32_seeded); // Should be different with seed
 
     // Test fingerprint32
-    let fingerprint32 = farmhash::fingerprint32(input);
-    assert_ne!(hash32, fingerprint32); // Hash and fingerprint should be different
+    let _fingerprint32 = farmhash::fingerprint32(input);
+    // Hash32 and Fingerprint32 coincide on platforms without SSE4.1/4.2
 }
 
 #[test]
