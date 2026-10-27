@@ -60,10 +60,9 @@ impl Default for CityHashHasher {
 
 impl Hasher for CityHashHasher {
     fn finish(&self) -> u64 {
-        if self.seed.is_some() {
-            city_hash_64_with_seed(&self.buffer, self.seed.unwrap())
-        } else {
-            city_hash_64(&self.buffer)
+        match self.seed {
+            Some(seed) => city_hash_64_with_seed(&self.buffer, seed),
+            None => city_hash_64(&self.buffer),
         }
     }
 
